@@ -30,7 +30,7 @@ features = [
     "macros",
     "sqlite",
     "uuid",
-    "json",
+    # "json",
     "time",
     "migrate",
     "offline",
