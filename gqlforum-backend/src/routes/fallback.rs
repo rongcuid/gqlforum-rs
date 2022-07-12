@@ -4,6 +4,6 @@ use axum::{
 };
 
 pub async fn handler_404() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "nothing to see here")
+    (StatusCode::NOT_FOUND, "404 not found")
 }
 
