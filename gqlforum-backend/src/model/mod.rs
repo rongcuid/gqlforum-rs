@@ -1,52 +1,37 @@
+pub mod leaf;
+pub mod top_down;
+
 use async_graphql::*;
-use sqlx::{FromRow, SqlitePool};
+use sqlx::{query, query_as, sqlite::SqliteRow, FromRow, Row, SqlitePool};
+
+use self::leaf::User;
 
 pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
-    async fn user(&self, ctx: &Context<'_>, id: i64) -> Option<User> {
+    async fn board(&self, ctx: &Context<'_>, id: i64) -> Option<top_down::Board> {
+        None
+    }
+    async fn topic(&self, ctx: &Context<'_>, id: i64) -> Option<top_down::Topic> {
+        None
+    }
+    async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<top_down::Post> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE user_id = ?")
+        query("SELECT * FROM posts, users WHERE posts.author_user_id = users.user_id AND post_id = ?")
             .bind(id)
+            .map(|row: SqliteRow| {
+                top_down::Post { 
+                    id: row.get("post_id"), 
+                    author: User { 
+                        id: row.get("user_id"), 
+                        name: row.get("user_name") 
+                    }, 
+                    content: row.get("content") 
+                }
+            })
             .fetch_optional(pool)
             .await
-            .unwrap();
-        user
+            .expect("Query `post` error")
     }
-    async fn board(&self, ctx: &Context<'_>, id: i64) -> Option<Board> {
-        None
-    }
-    async fn topic(&self, ctx: &Context<'_>, id: i64) -> Option<Topic> {
-        None
-    }
-    async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<Post> {
-        None
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct Board {
-    id: i64,
-}
-
-#[derive(SimpleObject)]
-pub struct Topic {
-    id: i64,
-    author: User,
-    board: Board,
-}
-
-#[derive(SimpleObject)]
-pub struct Post {
-    id: i64,
-    author: User,
-    topic: Topic,
-    content: String,
-}
-
-#[derive(SimpleObject, FromRow)]
-pub struct User {
-    id: i64,
-    name: String,
 }
