@@ -16,8 +16,13 @@ pub async fn run() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("SQLite connection error");
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await.expect("Migration error");
 
-    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription).finish();
+    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+        .data(pool.clone())
+        .finish();
 
     // build our application with a route
     let app = Router::new()
