@@ -1,18 +1,31 @@
-use axum::{handler::Handler, routing::get, Router, Extension};
-use sqlx::{ SqlitePool};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use axum::{handler::Handler, routing::get, Extension, Router};
+use sqlx::SqlitePool;
 use std::net::SocketAddr;
 
-use crate::routes::{fallback::handler_404, index::handler};
+use crate::{
+    model::QueryRoot,
+    routes::{
+        fallback::handler_404,
+        graphql::{graphql_handler, graphql_playground},
+        index::index_handler,
+    },
+};
 
 pub async fn run() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("SQLite connection error");
+
+    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription).finish();
+
     // build our application with a route
     let app = Router::new()
-        .route("/", get(handler))
+        .route("/", get(index_handler))
+        .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
-        .layer(Extension(pool));
+        .layer(Extension(pool))
+        .layer(Extension(schema));
 
     // run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

@@ -23,6 +23,10 @@ async-graphql-axum = "4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+secrecy = { version = "0.8", features = ["serde"] }
+validator = "0.15"
+argon2 = { version = "0.4", features = ["std"] }
+
 [dependencies.sqlx]
 version = "0.6"
 features = [
