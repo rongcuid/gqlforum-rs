@@ -1,9 +1,9 @@
 -- Add migration script here
-INSERT INTO users (user_name) VALUES
-    ('root'),
-    ('jsmith1'),
-    ('test'),
-    ('hacker1');
+INSERT INTO users (user_name, phc) VALUES
+    ('root', null), 
+    ('jsmith1', '$argon2i$v=19$m=16,t=2,p=1$YWJjZGVmZ2g$P5sf4mPlhw10x9CCTPvVcQ'), -- password
+    ('test', null),
+    ('hacker1', null);
 
 INSERT INTO boards (board_name, creator_user_id) VALUES
     ('Board A', 1),

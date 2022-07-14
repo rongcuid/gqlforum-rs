@@ -3,7 +3,8 @@
 -- This is for SQLite
 CREATE TABLE users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_name TEXT UNIQUE NOT NULL
+    user_name TEXT UNIQUE NOT NULL,
+    phc TEXT
 );
 
 CREATE TABLE boards (

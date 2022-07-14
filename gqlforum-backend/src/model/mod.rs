@@ -18,7 +18,7 @@ impl QueryRoot {
     }
     async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<top_down::Post> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        query_as::<_, top_down::Post>("SELECT * FROM posts, users WHERE posts.author_user_id = users.user_id AND post_id = ?")
+        query_as::<_, top_down::Post>("SELECT posts.*, users.user_id, users.user_name FROM posts, users WHERE posts.author_user_id = users.user_id AND post_id = ?")
             .bind(id)
             .fetch_optional(pool)
             .await
