@@ -14,6 +14,7 @@ name = "gqlforum"
 
 [dependencies]
 axum = "0.5"
+hyper = "0.14"
 tokio = { version = "1", features = ["full"] }
 
 async-graphql = "4"
@@ -22,6 +23,10 @@ async-graphql-axum = "4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+secrecy = { version = "0.8", features = ["serde"] }
+validator = "0.15"
+argon2 = { version = "0.4", features = ["std"] }
+
 [dependencies.sqlx]
 version = "0.6"
 features = [
@@ -29,7 +34,7 @@ features = [
     "macros",
     "sqlite",
     "uuid",
-    "json",
+    # "json",
     "time",
     "migrate",
     "offline",
