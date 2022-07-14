@@ -1,0 +1,13 @@
+= GQLForum
+
+ABANDONED!
+
+== Report
+
+It's just too much work to implement an entire forum from SQL up.
+
+The difficult part is not GraphQL. In fact, I feel like for complex queries it is easier than REST. However, given that I have no background in SQL, I find it really hard to query the results into nice structures.
+
+Also, any queries performed this way is not optimized.
+
+I will just use Hasura for future development.
