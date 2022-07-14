@@ -1,0 +1,21 @@
+{
+  "db": "SQLite",
+  "37389955e6954056cdd0a50072a811cb8f699b60e36e4d04a16f0e1d0d08d77a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "sqlite_version()",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "SELECT sqlite_version();"
+  }
+}
