@@ -18,7 +18,7 @@ impl QueryRoot {
             .expect("Failed to begin transaction for `topic`");
         // TODO Placeholder
         let meta = query_file!("sql/topic_meta.sql", topic_id)
-            .fetch_optional(pool)
+            .fetch_optional(&mut tx)
             .await
             .expect("Failed on `topic` select topic metadata")?;
         let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
@@ -32,14 +32,16 @@ impl QueryRoot {
                 };
                 let author: Option<topics::Author> = f();
                 topics::Post {
+                    // post_number: row.post_number,
                     deleted_at: row.deleted_at,
                     author,
                     body: row.body,
                 }
             })
-            .fetch_all(pool)
+            .fetch_all(&mut tx)
             .await
             .expect("Failed on `topic` select post");
+        tx.commit().await.expect("Failed on `topic` commit");
         Some(topics::Topic {
             author: topics::Author {
                 id: meta.user_id,

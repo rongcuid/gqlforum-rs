@@ -3,7 +3,7 @@
 -- Post numbers and deletion time are always visible.
 WITH meta AS (
     SELECT p.id AS post_id,
-        ROW_NUMBER() OVER (ORDER BY p.created_at) AS post_number,
+        -- ROW_NUMBER() OVER (ORDER BY p.created_at) AS post_number,
         p.deleted_at
     FROM topics t
         INNER JOIN posts p ON t.id = p.topic_id
@@ -31,7 +31,7 @@ WITH meta AS (
 )
 SELECT 
     meta.post_id,
-    meta.post_number,
+    -- meta.post_number,
     meta.deleted_at,
     content.created_at, 
     content.updated_at, 
