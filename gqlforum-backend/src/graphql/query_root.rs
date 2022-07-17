@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+
 
 use async_graphql::*;
-use sqlx::{query, query_as, sqlite::SqliteRow, FromRow, Row, SqlitePool};
+use sqlx::{query, Row, SqlitePool};
 
 pub struct QueryRoot;
 
@@ -30,9 +30,29 @@ impl QueryRoot {
     // }
     async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<topics::Post> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        query_as!(topics::Post, "SELECT body FROM posts WHERE id = ?", id)
-            .fetch_optional(pool)
-            .await
-            .expect("Query `post` error")
+        query!(
+            r#"
+            SELECT 
+                users.id AS user_id,
+                users.username,
+                users.post_signature,
+                posts.body
+            FROM posts 
+                INNER JOIN users ON posts.author_user_id = users.id
+            WHERE posts.id = ?
+        "#,
+            id
+        )
+        .map(|row| topics::Post {
+            author: topics::Author {
+                id: row.user_id,
+                name: row.username,
+                signature: row.post_signature,
+            },
+            body: row.body,
+        })
+        .fetch_optional(pool)
+        .await
+        .expect("Query `post` error")
     }
 }

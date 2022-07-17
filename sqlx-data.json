@@ -1,21 +1,39 @@
 {
   "db": "SQLite",
-  "833503a8071b0a18c9339b8ef0d23e2d69bb42340f9afee7166c98a2c8f8640d": {
+  "bd048b8a805320b78f09cc23321fadf313eae1b7df599d923e21d419e067415d": {
     "describe": {
       "columns": [
         {
-          "name": "body",
+          "name": "user_id",
           "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "post_signature",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "body",
+          "ordinal": 3,
           "type_info": "Text"
         }
       ],
       "nullable": [
+        false,
+        false,
+        true,
         false
       ],
       "parameters": {
         "Right": 1
       }
     },
-    "query": "SELECT body FROM posts WHERE id = ?"
+    "query": "\n            SELECT \n                users.id AS user_id,\n                users.username,\n                users.post_signature,\n                posts.body\n            FROM posts \n                INNER JOIN users ON posts.author_user_id = users.id\n            WHERE posts.id = ?\n        "
   }
 }

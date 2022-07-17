@@ -1,7 +1,16 @@
 use async_graphql::SimpleObject;
-use sqlx::{sqlite::SqliteRow, FromRow, Row};
 
-use super::leaf::User;
+
+#[derive(SimpleObject)]
+pub struct Author {
+    pub id: i64,
+    // pub created_at: DateTime<Utc>,
+    // pub updated_at: Option<DateTime<Utc>>,
+    // pub last_seen: Option<DateTime<Utc>>,
+    // #[sqlx(rename = "username")]
+    pub name: String,
+    pub signature: Option<String>,
+}
 
 // #[derive(SimpleObject, FromRow)]
 // pub struct Board {
@@ -11,22 +20,13 @@ use super::leaf::User;
 
 #[derive(SimpleObject)]
 pub struct Topic {
-    pub author: User,
+    pub author: Author,
     pub title: String,
     pub posts: Vec<Post>,
 }
 
 #[derive(SimpleObject)]
 pub struct Post {
-    // pub author: User,
+    pub author: Author,
     pub body: String,
 }
-
-// impl<'r> FromRow<'r, SqliteRow> for Post {
-//     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
-//         Ok(Self {
-//             author: User::from_row(row)?,
-//             content: row.try_get("content")?,
-//         })
-//     }
-// }
