@@ -16,11 +16,4 @@ impl QueryRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         None
     }
-    async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<top_down::Post> {
-        let pool = ctx.data::<SqlitePool>().unwrap();
-        query_file_as!(top_down::Post, "sql/posts.sql", id)
-            .fetch_optional(pool)
-            .await
-            .expect("Query `post` error")
-    }
 }
