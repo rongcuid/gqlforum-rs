@@ -13,12 +13,18 @@ path = "src/main.rs"
 name = "gqlforum"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+config = "0.13"
+
 axum = "0.5"
 hyper = "0.14"
 tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.3", features = ["full"]}
 
 async-graphql = "4"
 async-graphql-axum = "4"
+
+nanoid = "0.4"
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

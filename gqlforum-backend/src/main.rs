@@ -1,7 +1,6 @@
-use gqlforum_backend::{startup::run, telemetry::setup_telemetry};
+use gqlforum_backend::startup::run;
 
 #[tokio::main]
 async fn main() {
-    setup_telemetry();
     run().await;
 }
