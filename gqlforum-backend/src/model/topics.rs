@@ -1,4 +1,5 @@
 use async_graphql::SimpleObject;
+use sqlx::types::chrono::{DateTime, Utc, NaiveDateTime};
 
 
 #[derive(SimpleObject)]
@@ -17,6 +18,7 @@ pub struct Topic {
 
 #[derive(SimpleObject)]
 pub struct Post {
-    pub author: Author,
-    pub body: String,
+    pub deleted_at: Option<NaiveDateTime>,
+    pub author: Option<Author>,
+    pub body: Option<String>,
 }

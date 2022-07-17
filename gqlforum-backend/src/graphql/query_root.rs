@@ -1,7 +1,5 @@
-
-
 use async_graphql::*;
-use sqlx::{query, Row, SqlitePool, query_file};
+use sqlx::{query, query_file, Row, SqlitePool, types::chrono::DateTime};
 
 pub struct QueryRoot;
 
@@ -12,35 +10,43 @@ impl QueryRoot {
     // async fn board(&self, _ctx: &Context<'_>, _id: i64) -> Option<top_down::Board> {
     //     None
     // }
-    async fn topic(
-        &self,
-        ctx: &Context<'_>,
-        user_id: i64,
-        topic_id: i64,
-    ) -> Option<topics::Topic> {
+    async fn topic(&self, ctx: &Context<'_>, user_id: i64, topic_id: i64) -> Option<topics::Topic> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let mut tx = pool.begin().await.expect("Failed to begin transaction for `topic`");
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("Failed to begin transaction for `topic`");
         // TODO Placeholder
-        let meta = query!(r#"
+        let meta = query!(
+            r#"
         SELECT 
             users.id user_id, users.username, users.post_signature,
             topics.title
         FROM topics 
             INNER JOIN users ON topics.author_user_id = users.id
         WHERE topics.id = ?
-        "#, topic_id)
+        "#,
+            topic_id
+        )
         .fetch_optional(pool)
         .await
         .expect("Failed on `topic` select topic metadata")?;
         let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
-        .map(|row| topics::Post {
-            author: topics::Author {
-                id: row.user_id,
-                name: row.username,
-                signature: row.post_signature,
-            },
-            body: row.body,
-        })
+            .map(|row| {
+                let f = || -> Option<topics::Author> {
+                    Some(topics::Author {
+                        id: row.author_user_id?,
+                        name: row.username?,
+                        signature: row.post_signature,
+                    })
+                };
+                let author: Option<topics::Author> = f();
+                topics::Post {
+                    deleted_at: row.deleted_at,
+                    author,
+                    body: row.body,
+                }
+            })
             .fetch_all(pool)
             .await
             .expect("Failed on `topic` select post");
@@ -51,34 +57,34 @@ impl QueryRoot {
                 signature: meta.post_signature,
             },
             title: meta.title,
-            posts
+            posts,
         })
     }
-    async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<topics::Post> {
-        let pool = ctx.data::<SqlitePool>().unwrap();
-        query!(
-            r#"
-            SELECT 
-                users.id AS user_id,
-                users.username,
-                users.post_signature,
-                posts.body
-            FROM posts 
-                INNER JOIN users ON posts.author_user_id = users.id
-            WHERE posts.id = ?
-        "#,
-            id
-        )
-        .map(|row| topics::Post {
-            author: topics::Author {
-                id: row.user_id,
-                name: row.username,
-                signature: row.post_signature,
-            },
-            body: row.body,
-        })
-        .fetch_optional(pool)
-        .await
-        .expect("Query `post` error")
-    }
+    // async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<topics::Post> {
+    //     let pool = ctx.data::<SqlitePool>().unwrap();
+    //     query!(
+    //         r#"
+    //         SELECT
+    //             users.id AS user_id,
+    //             users.username,
+    //             users.post_signature,
+    //             posts.body
+    //         FROM posts
+    //             INNER JOIN users ON posts.author_user_id = users.id
+    //         WHERE posts.id = ?
+    //     "#,
+    //         id
+    //     )
+    //     .map(|row| topics::Post {
+    //         author: topics::Author {
+    //             id: row.user_id,
+    //             name: row.username,
+    //             signature: row.post_signature,
+    //         },
+    //         body: row.body,
+    //     })
+    //     .fetch_optional(pool)
+    //     .await
+    //     .expect("Query `post` error")
+    // }
 }
