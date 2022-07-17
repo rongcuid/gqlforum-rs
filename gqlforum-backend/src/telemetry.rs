@@ -1,5 +1,4 @@
 use axum::{body::Body, http::Request, Router};
-use nanoid_dictionary::NOLOOKALIKES_SAFE;
 use tower_http::{
     trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
     LatencyUnit,
@@ -28,7 +27,7 @@ pub fn setup_telemetry(app: Router) -> Router {
             .make_span_with(|request: &Request<Body>| {
                 info_span!(
                     "request",
-                    id = %nanoid::nanoid!(21, NOLOOKALIKES_SAFE),
+                    id = %nanoid::nanoid!(),
                     method = %request.method(),
                     uri = %request.uri(),
                 )

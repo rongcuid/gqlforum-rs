@@ -1,16 +1,16 @@
 -- Select posts from a topic, bindings (current_user, topic_id).
 -- Post contents are visible if they are not deleted or if current user is a moderator to the topic it belongs to.
 -- Post numbers and deletion time are always visible.
-WITH (
+WITH meta AS (
     SELECT p.id AS post_id,
-        ROW_NUMBER() AS post_number,
+        ROW_NUMBER() OVER (ORDER BY p.created_at) AS post_number,
         p.deleted_at
     FROM topics t
-        INNER JOIN posts p ON topics.topic_id = posts.topic_id
-    WHERE topics.topic_id = ?2
+        INNER JOIN posts p ON t.id = p.topic_id
+    WHERE t.id = ?2
     ORDER BY p.created_at
-) AS meta WITH (
-    SELECT p.id as post_id,
+), content AS (
+    SELECT p.id,
         p.created_at,
         p.updated_at,
         p.author_user_id,
@@ -24,7 +24,7 @@ WITH (
             WHERE m.topic_id = p.topic_id
                 AND m.moderator_user_id = ?1
         )
-) AS content
+)
 SELECT *
 FROM meta
     LEFT JOIN content;
