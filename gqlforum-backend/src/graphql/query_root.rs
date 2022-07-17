@@ -1,5 +1,5 @@
 use async_graphql::*;
-use sqlx::{query, query_file, Row, SqlitePool, types::chrono::DateTime};
+use sqlx::{query, query_file, types::chrono::DateTime, Row, SqlitePool};
 
 pub struct QueryRoot;
 
@@ -17,20 +17,10 @@ impl QueryRoot {
             .await
             .expect("Failed to begin transaction for `topic`");
         // TODO Placeholder
-        let meta = query!(
-            r#"
-        SELECT 
-            users.id user_id, users.username, users.post_signature,
-            topics.title
-        FROM topics 
-            INNER JOIN users ON topics.author_user_id = users.id
-        WHERE topics.id = ?
-        "#,
-            topic_id
-        )
-        .fetch_optional(pool)
-        .await
-        .expect("Failed on `topic` select topic metadata")?;
+        let meta = query_file!("sql/topic_meta.sql", topic_id)
+            .fetch_optional(pool)
+            .await
+            .expect("Failed on `topic` select topic metadata")?;
         let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
             .map(|row| {
                 let f = || -> Option<topics::Author> {
