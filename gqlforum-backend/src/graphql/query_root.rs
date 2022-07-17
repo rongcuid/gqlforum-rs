@@ -32,7 +32,7 @@ impl QueryRoot {
                 };
                 let author: Option<topics::Author> = f();
                 topics::Post {
-                    // post_number: row.post_number,
+                    post_number: row.post_number,
                     deleted_at: row.deleted_at,
                     author,
                     body: row.body,
