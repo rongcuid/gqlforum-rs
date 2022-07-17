@@ -1,8 +1,6 @@
 = GQLForum
 
-ABANDONED!
-
-== Report
+== Report 1
 
 It's just too much work to implement an entire forum from SQL up.
 
@@ -11,3 +9,9 @@ The difficult part is not GraphQL. In fact, I feel like for complex queries it i
 Also, any queries performed this way is not optimized.
 
 I will just use Hasura for future development.
+
+== Report 2
+
+Hasura is great... except when I needed to ask questions in the community, because nobody is responding. So I am coming back here.
+
+Hopefully I can create a project template at some point.
