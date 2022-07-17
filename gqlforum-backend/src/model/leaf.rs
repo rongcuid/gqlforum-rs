@@ -1,10 +1,16 @@
 use async_graphql::SimpleObject;
-use sqlx::FromRow;
+use sqlx::{
+    types::chrono::{DateTime, Utc},
+    FromRow,
+};
 
 #[derive(SimpleObject, FromRow)]
 pub struct User {
-    #[sqlx(rename = "user_id")]
     pub id: i64,
-    #[sqlx(rename = "user_name")]
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub last_seen: Option<DateTime<Utc>>,
+    #[sqlx(rename = "username")]
     pub name: String,
+    pub signature: Option<String>,
 }

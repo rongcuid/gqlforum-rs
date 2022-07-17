@@ -1,0 +1,21 @@
+{
+  "db": "SQLite",
+  "833503a8071b0a18c9339b8ef0d23e2d69bb42340f9afee7166c98a2c8f8640d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "body",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT body FROM posts WHERE id = ?"
+  }
+}

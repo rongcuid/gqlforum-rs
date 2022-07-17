@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 
 use crate::{
     configuration::get_configuration,
-    model::QueryRoot,
+    graphql::QueryRoot,
     routes::{
         fallback::handler_404,
         graphql::{graphql_handler, graphql_playground},
