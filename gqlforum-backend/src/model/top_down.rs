@@ -1,5 +1,5 @@
 use async_graphql::SimpleObject;
-use sqlx::{FromRow, Row, sqlite::SqliteRow};
+use sqlx::{sqlite::SqliteRow, FromRow, Row};
 
 use super::leaf::User;
 
@@ -26,10 +26,10 @@ pub struct Post {
 
 impl<'r> FromRow<'r, SqliteRow> for Post {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
-        Ok(Self { 
-            id: row.try_get("post_id")?, 
-            author: User::from_row(row)?, 
-            content: row.try_get("content")?
+        Ok(Self {
+            id: row.try_get("post_id")?,
+            author: User::from_row(row)?,
+            content: row.try_get("content")?,
         })
     }
 }

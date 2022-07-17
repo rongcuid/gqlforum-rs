@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "test.db",
+            "database": "${workspaceFolder:gqlforum-rs}/test.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

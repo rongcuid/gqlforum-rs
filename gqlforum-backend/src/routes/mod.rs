@@ -1,3 +1,3 @@
 pub mod fallback;
-pub mod index;
 pub mod graphql;
+pub mod index;

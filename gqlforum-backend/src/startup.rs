@@ -4,21 +4,28 @@ use sqlx::SqlitePool;
 use std::net::SocketAddr;
 
 use crate::{
+    configuration::get_configuration,
     model::QueryRoot,
     routes::{
         fallback::handler_404,
         graphql::{graphql_handler, graphql_playground},
-        index::index_handler,
     },
 };
 
+use crate::telemetry::{init_telemetry, setup_telemetry};
+
 pub async fn run() {
-    let pool = SqlitePool::connect("sqlite::memory:")
+    init_telemetry();
+
+    let configuration = get_configuration().expect("Failed to read configuration");
+
+    let pool = SqlitePool::connect(&configuration.database.connection)
         .await
         .expect("SQLite connection error");
     sqlx::migrate!("./migrations")
         .run(&pool)
-        .await.expect("Migration error");
+        .await
+        .expect("Migration error");
 
     let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
         .data(pool.clone())
@@ -26,17 +33,21 @@ pub async fn run() {
 
     // build our application with a route
     let app = Router::new()
-        .route("/", get(index_handler))
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
         .layer(Extension(pool))
         .layer(Extension(schema));
 
+    // add a fallback service for handling routes to unknown paths
+    let app = app.fallback(handler_404.into_service());
+
+    let app = setup_telemetry(app);
+
     // run it
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .expect("Axum server error");
+        .unwrap();
 }
