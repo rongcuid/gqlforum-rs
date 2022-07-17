@@ -4,10 +4,3 @@ SELECT t.topic_id AS topic_id,
     m.moderator_user_id AS moderator_user_id
 FROM topics t
     INNER JOIN moderators m ON t.board_id = m.board_id;
-
-CREATE VIEW post_moderators AS
-SELECT p.post_id AS post_id,
-    m.moderator_user_id AS moderator_user_id
-FROM posts p
-    INNER JOIN topics t ON p.topic_id = t.id
-    INNER JOIN moderators m ON t.board_id = m.board_id;

@@ -71,6 +71,7 @@ CREATE TABLE posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
     topic_id INTEGER NOT NULL,
     author_user_id INTEGER NOT NULL,
     body TEXT NOT NULL,
