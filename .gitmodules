@@ -1,0 +1,3 @@
+[submodule "sqlx"]
+	path = sqlx
+	url = git@github.com:rongcuid/sqlx.git
