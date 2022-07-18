@@ -1,9 +1,9 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
-use sqlx::{SqlitePool, sqlite::{SqlitePoolOptions, SqliteConnectOptions}, ConnectOptions};
+use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use std::net::SocketAddr;
 use std::str::FromStr;
-use tracing::{*, log::LevelFilter};
+use tracing::{log::LevelFilter, *};
 
 use crate::{
     configuration::get_configuration,
@@ -21,7 +21,8 @@ pub async fn run() {
 
     let configuration = get_configuration().expect("Failed to read configuration");
 
-    let mut options = SqliteConnectOptions::from_str(&configuration.database.connection).expect("Failed to create SqlitePoolOptions")
+    let mut options = SqliteConnectOptions::from_str(&configuration.database.connection)
+        .expect("Failed to create SqlitePoolOptions")
         .create_if_missing(true);
     options.log_statements(LevelFilter::Trace);
     let pool = SqlitePool::connect_with(options)

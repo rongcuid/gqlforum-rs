@@ -1,6 +1,5 @@
 use async_graphql::SimpleObject;
-use sqlx::types::chrono::{DateTime, Utc, NaiveDateTime};
-
+use sqlx::types::chrono::NaiveDateTime;
 
 #[derive(SimpleObject)]
 pub struct Author {
