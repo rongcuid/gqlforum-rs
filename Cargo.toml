@@ -3,3 +3,6 @@
 members = [
     "gqlforum-backend",
 ]
+
+[patch.crates-io]
+sqlx = { path = "../sqlx" }

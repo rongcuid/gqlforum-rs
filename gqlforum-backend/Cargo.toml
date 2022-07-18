@@ -34,7 +34,12 @@ async-graphql-axum = "4"
 
 [dependencies.async-graphql]
 version = "4"
-features = [ "default", "chrono" ]
+features = [ 
+    "default", 
+    "chrono",
+    "tracing",
+    # "apollo_tracing",
+]
 
 [dependencies.sqlx]
 version = "0.6"
