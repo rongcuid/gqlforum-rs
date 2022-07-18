@@ -38,7 +38,7 @@ features = [
     "default", 
     "chrono",
     "tracing",
-    # "apollo_tracing",
+    "apollo_tracing",
 ]
 
 [dependencies.sqlx]

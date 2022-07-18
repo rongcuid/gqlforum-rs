@@ -1,5 +1,6 @@
 use async_graphql::*;
 use sqlx::{query, query_file, types::chrono::DateTime, Row, SqlitePool};
+use tracing::{info, warn, error};
 
 pub struct QueryRoot;
 
@@ -11,6 +12,7 @@ impl QueryRoot {
     //     None
     // }
     async fn topic(&self, ctx: &Context<'_>, user_id: i64, topic_id: i64) -> Option<topics::Topic> {
+        info!("Topic tracing");
         let pool = ctx.data::<SqlitePool>().unwrap();
         let mut tx = pool
             .begin()
@@ -52,31 +54,4 @@ impl QueryRoot {
             posts,
         })
     }
-    // async fn post(&self, ctx: &Context<'_>, id: i64) -> Option<topics::Post> {
-    //     let pool = ctx.data::<SqlitePool>().unwrap();
-    //     query!(
-    //         r#"
-    //         SELECT
-    //             users.id AS user_id,
-    //             users.username,
-    //             users.post_signature,
-    //             posts.body
-    //         FROM posts
-    //             INNER JOIN users ON posts.author_user_id = users.id
-    //         WHERE posts.id = ?
-    //     "#,
-    //         id
-    //     )
-    //     .map(|row| topics::Post {
-    //         author: topics::Author {
-    //             id: row.user_id,
-    //             name: row.username,
-    //             signature: row.post_signature,
-    //         },
-    //         body: row.body,
-    //     })
-    //     .fetch_optional(pool)
-    //     .await
-    //     .expect("Query `post` error")
-    // }
 }
