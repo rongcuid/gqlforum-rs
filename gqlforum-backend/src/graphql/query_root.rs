@@ -1,6 +1,6 @@
 use async_graphql::*;
 use sqlx::{query_file, Row, SqlitePool};
-use tracing::{debug};
+use tracing::debug;
 
 pub struct QueryRoot;
 
