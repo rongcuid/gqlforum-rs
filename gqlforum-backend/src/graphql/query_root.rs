@@ -4,7 +4,7 @@ use tracing::debug;
 
 pub struct QueryRoot;
 
-use crate::model::topics;
+use super::topics;
 
 #[Object]
 impl QueryRoot {
