@@ -1,0 +1,105 @@
+{
+  "db": "SQLite",
+  "48dd28e712ef4789ae7e712ffb787e9aaf1f336697ebc0a00c9f3f138c3496ad": {
+    "describe": {
+      "columns": [
+        {
+          "name": "post_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "post_number",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "deleted_at",
+          "ordinal": 2,
+          "type_info": "Datetime"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Datetime"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 4,
+          "type_info": "Datetime"
+        },
+        {
+          "name": "author_user_id",
+          "ordinal": 5,
+          "type_info": "Int64"
+        },
+        {
+          "name": "body",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "username",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "post_signature",
+          "ordinal": 8,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "-- Select posts from a topic, bindings (current_user, topic_id).\n-- Post contents are visible if they are not deleted or if current user is a moderator to the topic it belongs to.\n-- Post numbers and deletion time are always visible.\nWITH meta AS (\n    SELECT *\n    FROM post_metadata\n    WHERE post_metadata.topic_id = ?2\n),\ncontent AS (\n    SELECT meta.post_id,\n        p.created_at,\n        p.updated_at,\n        p.author_user_id,\n        p.body,\n        u.username,\n        u.post_signature\n    FROM meta\n        INNER JOIN posts p ON meta.post_id = p.id\n        INNER JOIN users u ON p.author_user_id = u.id\n    WHERE p.deleted_at IS NULL\n        OR EXISTS (\n            SELECT 1\n            FROM topic_moderators m\n            WHERE m.topic_id = p.topic_id\n                AND m.moderator_user_id = ?1\n        )\n)\nSELECT meta.post_id,\n    meta.post_number,\n    meta.deleted_at,\n    content.created_at,\n    content.updated_at,\n    content.author_user_id,\n    content.body,\n    content.username,\n    content.post_signature\nFROM meta\n    LEFT JOIN content ON meta.post_id = content.post_id;"
+  },
+  "8c48e05071b21726b52166ac6854f0ed5a9821b1501631fc87cd14eab7512fd7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "post_signature",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "title",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT users.id user_id,\n    users.username,\n    users.post_signature,\n    topics.title\nFROM topics\n    INNER JOIN users ON topics.author_user_id = users.id\nWHERE topics.id = ?"
+  }
+}

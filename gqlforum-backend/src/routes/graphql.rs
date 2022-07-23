@@ -8,7 +8,7 @@ use axum::{
 };
 // use sqlx::SqlitePool;
 
-use crate::model::QueryRoot;
+use crate::graphql::QueryRoot;
 
 pub async fn graphql_handler(
     schema: Extension<Schema<QueryRoot, EmptyMutation, EmptySubscription>>,

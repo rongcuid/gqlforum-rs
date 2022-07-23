@@ -3,3 +3,9 @@
 members = [
     "gqlforum-backend",
 ]
+
+[patch.crates-io]
+sqlx = { path = "../sqlx" }
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3
