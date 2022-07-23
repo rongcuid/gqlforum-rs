@@ -41,15 +41,23 @@ features = [
     "apollo_tracing",
 ]
 
-[dependencies.sqlx]
-version = "0.6"
+[dependencies.sea-orm]
+version = "0.9"
 features = [
+    "sqlx-sqlite",
     "runtime-tokio-rustls",
     "macros",
-    "sqlite",
-    "uuid",
-    # "time",
-    "chrono",
-    "migrate",
-    "offline",
 ]
+
+# [dependencies.sqlx]
+# version = "0.6"
+# features = [
+#     "runtime-tokio-rustls",
+#     "macros",
+#     "sqlite",
+#     "uuid",
+#     # "time",
+#     "chrono",
+#     "migrate",
+#     "offline",
+# ]
