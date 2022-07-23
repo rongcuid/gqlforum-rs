@@ -2,6 +2,7 @@
 
 members = [
     "gqlforum-backend",
+    "migration",
 ]
 
 [patch.crates-io]
