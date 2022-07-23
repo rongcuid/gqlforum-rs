@@ -1,6 +1,6 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
-use sea_orm::Database;
+use sea_orm::{ConnectionTrait, Database, DbBackend};
 // use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -12,6 +12,7 @@ use crate::{
     routes::{
         fallback::handler_404,
         graphql::{graphql_handler, graphql_playground},
+        index::index_handler,
     },
 };
 
@@ -46,6 +47,7 @@ pub async fn run() {
 
     // build our application with a route
     let app = Router::new()
+        .route("/", index_handler.into_service())
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
         .layer(Extension(db.clone()))
