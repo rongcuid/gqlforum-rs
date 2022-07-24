@@ -7,7 +7,7 @@ use tracing::{log::LevelFilter, *};
 
 use crate::{
     configuration::get_configuration,
-    graphql::QueryRoot,
+    graphql::{MutationRoot, QueryRoot, SubscriptionRoot},
     routes::{
         fallback::handler_404,
         graphql::{graphql_handler, graphql_playground},
@@ -33,7 +33,7 @@ pub async fn run() {
         .await
         .expect("Migration error");
 
-    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+    let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .extension(async_graphql::extensions::Tracing)
         .extension(async_graphql::extensions::ApolloTracing)
         .data(pool.clone())
