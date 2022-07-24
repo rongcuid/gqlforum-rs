@@ -1,5 +1,5 @@
 -- Select posts from a topic, bindings (current_user, topic_id).
--- Post contents are visible if they are not deleted or if current user is a moderator to the topic it belongs to.
+-- Post contents are visible if they are not deleted or if current user is a moderator.
 -- Post numbers and deletion time are always visible.
 WITH meta AS (
     SELECT *
@@ -20,9 +20,8 @@ content AS (
     WHERE p.deleted_at IS NULL
         OR EXISTS (
             SELECT 1
-            FROM topic_moderators m
-            WHERE m.topic_id = p.topic_id
-                AND m.moderator_user_id = ?1
+            FROM moderators m
+            WHERE m.moderator_user_id = ?1
         )
 )
 SELECT meta.post_id,

@@ -22,30 +22,13 @@ END;
 -- Administrator account: admin; admin
 -- System announcement: system
 -- General announcement: announcement
-INSERT
-    OR IGNORE INTO users (username, phc_string)
+INSERT INTO users (username, phc_string)
 VALUES (
         'admin',
         '$argon2i$v=19$m=16,t=2,p=1$ZHdMaHdYeE1JZ3d6dmo0WQ$SWvpjaTUlShdvYL6qKARQg'
     ),
     ('system', NULL),
     ('announcement', NULL);
--- Forum boards
-CREATE TABLE boards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    board_name TEXT UNIQUE NOT NULL,
-    creator_user_id INTEGER NOT NULL,
-    FOREIGN KEY (creator_user_id) REFERENCES users(id)
-);
-CREATE TRIGGER tr_boards_after_update
-AFTER
-UPDATE ON boards BEGIN
-UPDATE boards
-SET updated_at = CURRENT_TIMESTAMP
-WHERE boards.id = NEW.id;
-END;
 -- Topics
 CREATE TABLE topics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,11 +36,9 @@ CREATE TABLE topics (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
     --
-    board_id INTEGER NOT NULL,
     author_user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    FOREIGN KEY (author_user_id) REFERENCES users(id),
-    FOREIGN KEY (board_id) REFERENCES boards(id)
+    FOREIGN KEY (author_user_id) REFERENCES users(id)
 );
 CREATE TRIGGER tr_topics_after_update
 AFTER
@@ -85,20 +66,34 @@ UPDATE posts
 SET updated_at = CURRENT_TIMESTAMP
 WHERE posts.id = NEW.id;
 END;
--- Replies
-CREATE TABLE replies (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    post_id INTEGER NOT NULL,
-    author_user_id INTEGER NOT NULL,
-    body TEXT NOT NULL
-);
+CREATE VIEW post_metadata AS
+SELECT p.id AS post_id,
+    t.id AS topic_id,
+    ROW_NUMBER() OVER (
+        PARTITION BY p.topic_id
+        ORDER BY p.created_at
+    ) AS post_number,
+    p.deleted_at
+FROM topics t
+    INNER JOIN posts p ON t.id = p.topic_id
+ORDER BY p.created_at;
 -- Access controls
 -- Moderators
 CREATE TABLE moderators (
-    board_id INTEGER NOT NULL,
-    moderator_user_id INTEGER NOT NULL,
+    moderator_user_id INTEGER PRIMARY KEY,
     assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (board_id, moderator_user_id),
-    FOREIGN KEY (board_id) REFERENCES boards(id),
-    FOREIGN KEY (moderator_user_id) REFERENCES user(id)
+    notes TEXT NOT NULL,
+    FOREIGN KEY (moderator_user_id) REFERENCES users(id)
+);
+INSERT INTO moderators (moderator_user_id, notes)
+VALUES (1, 'Administrator account');
+-- Past moderators
+CREATE TABLE past_moderators(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    moderator_user_id INTEGER,
+    assigned_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP NOT NULL,
+    notes TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    FOREIGN KEY (moderator_user_id) REFERENCES users(id)
 );
