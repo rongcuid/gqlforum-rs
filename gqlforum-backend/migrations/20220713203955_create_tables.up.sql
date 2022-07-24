@@ -97,3 +97,9 @@ CREATE TABLE past_moderators(
     reason TEXT NOT NULL,
     FOREIGN KEY (moderator_user_id) REFERENCES users(id)
 );
+-- Sessions
+CREATE TABLE active_sessions(
+    id BLOB PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP
+);
