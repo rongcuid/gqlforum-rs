@@ -1,8 +1,11 @@
 use async_graphql::*;
+
 use sqlx::{query_file, Row, SqlitePool};
 use tracing::debug;
 
 pub struct QueryRoot;
+
+use crate::routes::graphql::AuthData;
 
 use super::topics;
 
@@ -11,7 +14,8 @@ impl QueryRoot {
     // async fn board(&self, _ctx: &Context<'_>, _id: i64) -> Option<top_down::Board> {
     //     None
     // }
-    async fn topic(&self, ctx: &Context<'_>, user_id: i64, topic_id: i64) -> Option<topics::Topic> {
+    async fn topic(&self, ctx: &Context<'_>, topic_id: i64) -> Option<topics::Topic> {
+        let auth = ctx.data::<AuthData>().unwrap();
         let pool = ctx.data::<SqlitePool>().unwrap();
         debug!("Querying for topics");
         let mut tx = pool
@@ -24,7 +28,7 @@ impl QueryRoot {
             .expect("Failed on `topic` select topic metadata")?;
         let posts = if ctx.look_ahead().field("posts").exists() {
             debug!("Querying for posts");
-            let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
+            let posts = query_file!("sql/topic_by_id.sql", auth.user_id, topic_id)
                 .map(|row| {
                     let f = || -> Option<topics::Author> {
                         Some(topics::Author {
