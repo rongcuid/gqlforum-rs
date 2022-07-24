@@ -17,10 +17,7 @@ pub async fn graphql_handler(
     schema: Extension<SchemaRoot>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    schema
-        .execute(req.0)
-        .await
-        .into()
+    schema.execute(req.0).await.into()
 }
 
 pub async fn graphql_playground() -> impl IntoResponse {
