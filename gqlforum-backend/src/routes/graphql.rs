@@ -4,26 +4,21 @@ use async_graphql::{
 };
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
+    headers::{Header, HeaderMapExt, HeaderName},
     response::{Html, IntoResponse},
     Extension,
 };
 use hyper::HeaderMap;
 // use sqlx::SqlitePool;
 
-use crate::graphql::QueryRoot;
-
-pub struct AuthData {
-    pub user_id: i64,
-}
+use crate::graphql::{QueryRoot, SchemaRoot};
 
 pub async fn graphql_handler(
-    _headers: HeaderMap,
-    schema: Extension<Schema<QueryRoot, EmptyMutation, EmptySubscription>>,
+    schema: Extension<SchemaRoot>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    let _user_id = 1; // TODO!
     schema
-        .execute(req.0.data(AuthData { user_id: 1 }))
+        .execute(req.0)
         .await
         .into()
 }

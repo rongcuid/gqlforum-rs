@@ -5,3 +5,4 @@ pub mod graphql;
 pub mod routes;
 pub mod startup;
 pub mod telemetry;
+pub mod core;
