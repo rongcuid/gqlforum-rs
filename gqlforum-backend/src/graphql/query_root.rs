@@ -5,6 +5,8 @@ use tracing::debug;
 
 pub struct QueryRoot;
 
+use crate::graphql::topics::query_topic_posts;
+
 use super::topics;
 
 #[Object]
@@ -23,33 +25,7 @@ impl QueryRoot {
             .ok_or(Error::new("Internal Server Error"))?;
         let posts = if ctx.look_ahead().field("posts").exists() {
             debug!("Querying for posts");
-            let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
-                .map(|row| {
-                    let f = || {
-                        let author = topics::Author {
-                            id: row.author_user_id?,
-                            name: row.username?,
-                            signature: row.post_signature,
-                        };
-                        let body = row.body?;
-                        Some(topics::PostContent {
-                            author,
-                            body,
-                            created_at: row.created_at?,
-                            updated_at: row.updated_at,
-                        })
-                    };
-                    let content = f();
-                    topics::Post {
-                        post_number: row.post_number,
-                        deleted_at: row.deleted_at,
-                        content,
-                    }
-                })
-                .fetch_all(&mut tx)
-                .await?;
-            tx.commit().await?;
-            posts
+            query_topic_posts(&mut tx, user_id, topic_id).await?
         } else {
             Vec::new()
         };
