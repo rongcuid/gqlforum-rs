@@ -37,7 +37,7 @@ async-graphql-axum = "4"
 version = "4"
 features = [ 
     "default", 
-    "chrono",
+    "time",
     "tracing",
     "apollo_tracing",
 ]
@@ -49,8 +49,8 @@ features = [
     "macros",
     "sqlite",
     "uuid",
-    # "time",
-    "chrono",
+    "time",
+    # "chrono",
     "migrate",
     "offline",
 ]

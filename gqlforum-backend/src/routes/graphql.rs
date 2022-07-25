@@ -1,17 +1,13 @@
-use async_graphql::{
-    http::{playground_source, GraphQLPlaygroundConfig},
-    EmptyMutation, EmptySubscription, Schema,
-};
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
-    headers::{Header, HeaderMapExt, HeaderName},
     response::{Html, IntoResponse},
     Extension,
 };
-use hyper::HeaderMap;
+
 // use sqlx::SqlitePool;
 
-use crate::graphql::{QueryRoot, SchemaRoot};
+use crate::graphql::SchemaRoot;
 
 pub async fn graphql_handler(
     schema: Extension<SchemaRoot>,

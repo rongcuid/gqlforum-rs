@@ -25,19 +25,25 @@ impl QueryRoot {
             debug!("Querying for posts");
             let posts = query_file!("sql/topic_by_id.sql", user_id, topic_id)
                 .map(|row| {
-                    let f = || -> Option<topics::Author> {
-                        Some(topics::Author {
+                    let f = || {
+                        let author = topics::Author {
                             id: row.author_user_id?,
                             name: row.username?,
                             signature: row.post_signature,
+                        };
+                        let body = row.body?;
+                        Some(topics::PostContent {
+                            author,
+                            body,
+                            created_at: row.created_at?,
+                            updated_at: row.updated_at,
                         })
                     };
-                    let author: Option<topics::Author> = f();
+                    let content = f();
                     topics::Post {
                         post_number: row.post_number,
                         deleted_at: row.deleted_at,
-                        author,
-                        body: row.body,
+                        content,
                     }
                 })
                 .fetch_all(&mut tx)

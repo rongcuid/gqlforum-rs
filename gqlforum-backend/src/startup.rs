@@ -1,4 +1,4 @@
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use std::net::SocketAddr;
@@ -7,7 +7,7 @@ use tracing::{log::LevelFilter, *};
 
 use crate::{
     configuration::get_configuration,
-    graphql::{MutationRoot, QueryRoot, SubscriptionRoot},
+    graphql::{MutationRoot, QueryRoot},
     routes::{
         fallback::handler_404,
         graphql::{graphql_handler, graphql_playground},

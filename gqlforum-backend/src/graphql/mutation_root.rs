@@ -6,7 +6,7 @@ pub struct MutationRoot;
 
 #[Object]
 impl MutationRoot {
-    async fn login(&self, ctx: &Context<'_>, username: String, password: String) -> bool {
+    async fn login(&self, ctx: &Context<'_>, _username: String, _password: String) -> bool {
         let cookie = Cookie::build("test_cookie", nanoid!())
             .secure(true)
             .http_only(true)
