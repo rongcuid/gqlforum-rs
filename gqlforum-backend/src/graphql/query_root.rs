@@ -1,11 +1,11 @@
 use async_graphql::*;
 
-use sqlx::{query_file, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use tracing::debug;
 
 pub struct QueryRoot;
 
-use crate::graphql::topics::query_topic_posts;
+use crate::graphql::topics::{query_topic_meta, query_topic_posts};
 
 use super::topics;
 
@@ -19,24 +19,16 @@ impl QueryRoot {
         let user_id = Some(1); // TODO
         debug!("Querying for topics");
         let mut tx = pool.begin().await?;
-        let meta = query_file!("sql/topic_meta.sql", topic_id)
-            .fetch_optional(&mut tx)
+        let meta = query_topic_meta(&mut tx, user_id, topic_id)
             .await?
-            .ok_or(Error::new("Internal Server Error"))?;
+            .ok_or(Error::new("Topic does not exist."))?;
         let posts = if ctx.look_ahead().field("posts").exists() {
             debug!("Querying for posts");
             query_topic_posts(&mut tx, user_id, topic_id).await?
         } else {
             Vec::new()
         };
-        Ok(Some(topics::Topic {
-            author: topics::Author {
-                id: meta.user_id,
-                name: meta.username,
-                signature: meta.post_signature,
-            },
-            title: meta.title,
-            posts,
-        }))
+        tx.commit().await?;
+        Ok(Some(topics::Topic { meta, posts }))
     }
 }
