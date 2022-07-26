@@ -2,7 +2,7 @@ use cookie::Cookie;
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sqlx::{query, Sqlite, Transaction, SqlitePool};
+use sqlx::{query, sqlite::SqliteRow, FromRow, Row, Sqlite, SqlitePool, Transaction};
 use tracing::debug;
 
 #[derive(Clone, Debug)]
@@ -32,26 +32,33 @@ pub async fn try_get_verified_session_data<'a>(
     let session = SessionData::try_from(cookie).ok()?;
     debug!("CHK SESSION: {:?}", session.secret);
     if verify_session(pool, &session).await {
+        debug!("SESSION EXISTS");
         Some(session)
     } else {
+        debug!("SESSION MISSING");
         None
     }
 }
 
 async fn verify_session(pool: &SqlitePool, session: &SessionData) -> bool {
-    let mut hasher = Sha256::new();
-    hasher.update(session.secret.as_bytes());
-    let token_hash = &hasher.finalize()[..];
-    query("SELECT 1 FROM active_sessions WHERE session_user_id = ?1 AND token_hash = ?2 AND DATETIME(expired_at) > DATETIME('now')")
+    let token_hash = &Sha256::digest(session.secret.as_bytes())[..];
+    query(
+        r#"
+        SELECT 1 
+        FROM active_sessions 
+        WHERE session_user_id = ?1 
+            AND token_hash = ?2
+            AND datetime('now') < expires_at"#,
+    )
     .bind(session.user_id)
     .bind(token_hash)
-    .fetch_optional(pool).await.ok().is_some()
+    .fetch_optional(pool)
+    .await
+    .unwrap()
+    .is_some()
 }
 
-pub async fn insert_session(
-    pool: &SqlitePool,
-    session: SessionData,
-) -> Result<(), sqlx::Error> {
+pub async fn insert_session(pool: &SqlitePool, session: SessionData) -> Result<(), sqlx::Error> {
     debug!("NEW SESSION: {:?}", session.secret);
     let hash = &Sha256::digest(session.secret.as_bytes())[..];
     query(
