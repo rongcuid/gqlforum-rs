@@ -4,6 +4,7 @@ use sqlx::{
     query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite, SqlitePool,
     Transaction,
 };
+use tracing::debug;
 
 pub async fn query_topic(
     pool: &SqlitePool,
@@ -13,6 +14,7 @@ pub async fn query_topic(
     offset: i64,
     query_posts: bool,
 ) -> Result<Option<Topic>> {
+    debug!("Query topic {} for user {:?}", topic_id, user_id);
     let mut tx = pool.begin().await?;
     let meta = query_topic_meta(&mut tx, user_id, topic_id)
         .await?
@@ -95,11 +97,7 @@ pub struct Post {
 impl<'r> FromRow<'r, SqliteRow> for Post {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
         let meta = PostMeta::from_row(row)?;
-        let content = if meta.deleted_at.is_some() {
-            None
-        } else {
-            Some(PostContent::from_row(row)?)
-        };
+        let content = PostContent::from_row(row).ok();
         Ok(Self { meta, content })
     }
 }
@@ -131,14 +129,17 @@ pub struct PostContent {
 
 impl<'r> FromRow<'r, SqliteRow> for PostContent {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
-        Ok(Self {
-            author: Author {
-                id: row.try_get("author_user_id")?,
-                name: row.try_get("username")?,
-                signature: row.try_get("post_signature")?,
-            },
-            body: row.get("body"),
-        })
+        let id: Option<i64> = row.try_get("author_user_id")?;
+        let name: Option<String> = row.try_get("username")?;
+        let signature: Option<String> = row.try_get("post_signature")?;
+        let body: Option<String> = row.try_get("body")?;
+        let f = ||->Option<Self> {
+            Some(Self {
+                            author: Author { id: id?, name: name?, signature},
+                            body: body?
+                        })
+        };
+        f().ok_or(sqlx::Error::RowNotFound)
     }
 }
 

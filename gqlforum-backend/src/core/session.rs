@@ -31,8 +31,10 @@ pub async fn try_get_verified_session_data<'a>(
     let cookie = session_cookie.0.as_ref()?;
     let session = SessionData::try_from(cookie).ok()?;
     if verify_session(pool, &session).await {
+        debug!("Verified session for {}", session.user_id);
         Some(session)
     } else {
+        debug!("Fails to verify session for {}", session.user_id);
         None
     }
 }
