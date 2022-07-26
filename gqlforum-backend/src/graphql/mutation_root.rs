@@ -8,7 +8,7 @@ use crate::{
     core::{
         authentication::validate_user_credentials,
         cookies::sign_cookie_unchecked,
-        session::{insert_session, try_get_verified_session_data, SessionCookie, SessionData},
+        session::{insert_session, try_get_verified_session_data, SessionCookie, SessionData, delete_session},
     },
     startup::{HmacSecret, SessionCookieName},
 };
@@ -50,6 +50,21 @@ impl MutationRoot {
             } else {
                 Ok(false)
             }
+        }
+    }
+    async fn logout(&self, ctx: &Context<'_>) -> Result<bool> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        // let key = ctx.data::<HmacSecret>().unwrap();
+        // let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
+        let session_cookie = ctx.data::<SessionCookie>().unwrap();
+
+        let session = try_get_verified_session_data(pool, session_cookie).await;
+
+        if let Some(session) = session {
+            delete_session(pool, session.user_id, Secret::new(session.secret)).await?;
+            Ok(true)
+        } else {
+            Err(Error::new("Already logged out"))
         }
     }
 }

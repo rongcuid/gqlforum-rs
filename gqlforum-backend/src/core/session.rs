@@ -30,12 +30,9 @@ pub async fn try_get_verified_session_data<'a>(
 ) -> Option<SessionData> {
     let cookie = session_cookie.0.as_ref()?;
     let session = SessionData::try_from(cookie).ok()?;
-    debug!("CHK SESSION: {:?}", session.secret);
     if verify_session(pool, &session).await {
-        debug!("SESSION EXISTS");
         Some(session)
     } else {
-        debug!("SESSION MISSING");
         None
     }
 }
