@@ -5,9 +5,7 @@ use tracing::debug;
 
 pub struct QueryRoot;
 
-use crate::graphql::topics::query_topic;
-
-use super::topics;
+use crate::core::topics::{self, query_topic};
 
 #[Object]
 impl QueryRoot {

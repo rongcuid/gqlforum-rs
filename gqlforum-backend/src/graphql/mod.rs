@@ -1,7 +1,6 @@
 pub mod mutation_root;
 pub mod query_root;
 pub mod subscription_root;
-pub mod topics;
 
 use async_graphql::{EmptySubscription, Schema};
 pub use mutation_root::MutationRoot;
