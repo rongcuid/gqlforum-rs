@@ -1,7 +1,8 @@
 use async_graphql::*;
 
 use sqlx::{
-    query, query_file, sqlite::SqliteRow, types::time::PrimitiveDateTime, Row, Sqlite, Transaction,
+    query, query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite,
+    Transaction,
 };
 use tracing::debug;
 
@@ -36,31 +37,11 @@ pub async fn query_topic_posts(
     offset: i64,
 ) -> Result<Vec<Post>> {
     debug!("Querying for posts");
-    let posts = query(include_str!("sql/topic_by_id.sql"))
+    let posts = query_as(include_str!("sql/topic_by_id.sql"))
         .bind(user_id)
         .bind(topic_id)
         .bind(limit)
         .bind(offset)
-        .map(|row: SqliteRow| {
-            let f = || {
-                let author = Author {
-                    id: row.try_get("author_user_id").ok()?,
-                    name: row.try_get("username").ok()?,
-                    signature: row.try_get("post_signature").ok(),
-                };
-                let body = row.try_get("body").ok()?;
-                Some(PostContent { author, body })
-            };
-            Post {
-                meta: PostMeta {
-                    post_number: row.get("post_number"),
-                    created_at: row.get("created_at"),
-                    updated_at: row.get("updated_at"),
-                    deleted_at: row.get("deleted_at"),
-                },
-                content: f(),
-            }
-        })
         .fetch_all(tx)
         .await?;
     Ok(posts)
@@ -87,7 +68,19 @@ pub struct Post {
     pub content: Option<PostContent>,
 }
 
-#[derive(SimpleObject)]
+impl<'r> FromRow<'r, SqliteRow> for Post {
+    fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        let meta = PostMeta::from_row(row)?;
+        let content = if meta.deleted_at.is_some() {
+            None
+        } else {
+            Some(PostContent::from_row(row)?)
+        };
+        Ok(Self { meta, content })
+    }
+}
+
+#[derive(SimpleObject, Debug)]
 pub struct PostMeta {
     pub post_number: i64,
     pub created_at: PrimitiveDateTime,
@@ -95,15 +88,48 @@ pub struct PostMeta {
     pub deleted_at: Option<PrimitiveDateTime>,
 }
 
-#[derive(SimpleObject)]
+impl<'r> FromRow<'r, SqliteRow> for PostMeta {
+    fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            post_number: row.try_get("post_number")?,
+            created_at: row.try_get("created_at")?,
+            updated_at: row.try_get("updated_at")?,
+            deleted_at: row.try_get("deleted_at")?,
+        })
+    }
+}
+
+#[derive(SimpleObject, Debug)]
 pub struct PostContent {
     pub author: Author,
     pub body: String,
 }
 
-#[derive(SimpleObject)]
+impl<'r> FromRow<'r, SqliteRow> for PostContent {
+    fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            author: Author {
+                id: row.try_get("author_user_id")?,
+                name: row.try_get("username")?,
+                signature: row.try_get("post_signature")?,
+            },
+            body: row.get("body"),
+        })
+    }
+}
+
+#[derive(SimpleObject, Debug)]
 pub struct Author {
     pub id: i64,
     pub name: String,
     pub signature: Option<String>,
+}
+impl<'r> FromRow<'r, SqliteRow> for Author {
+    fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            name: row.try_get("name")?,
+            signature: row.try_get("signature")?,
+        })
+    }
 }
