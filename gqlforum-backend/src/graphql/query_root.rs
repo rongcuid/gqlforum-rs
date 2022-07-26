@@ -34,7 +34,6 @@ impl QueryRoot {
         #[graphql(default = 0)] offset: i64,
     ) -> Result<Option<topics::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let _key = ctx.data::<HmacSecret>().unwrap();
         let session_cookie = ctx.data::<SessionCookie>().unwrap();
         let mut tx = pool.begin().await?;
         let session_data = try_get_verified_session_data(&mut tx, session_cookie).await;

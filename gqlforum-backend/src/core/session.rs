@@ -1,7 +1,7 @@
 use cookie::Cookie;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sqlx::{query, Executor, Sqlite, Transaction};
+use sqlx::{query, Sqlite, Transaction};
 
 #[derive(Clone, Debug)]
 pub struct SessionCookie<'a>(pub Option<Cookie<'a>>);
