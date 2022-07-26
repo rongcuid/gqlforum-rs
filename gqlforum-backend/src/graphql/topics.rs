@@ -2,9 +2,31 @@ use async_graphql::*;
 
 use sqlx::{
     query, query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite,
-    Transaction,
+    SqlitePool, Transaction,
 };
 use tracing::debug;
+
+pub async fn query_topic(
+    pool: &SqlitePool,
+    user_id: Option<i64>,
+    topic_id: i64,
+    limit: i64,
+    offset: i64,
+    query_posts: bool,
+) -> Result<Option<Topic>> {
+    let mut tx = pool.begin().await?;
+    let meta = query_topic_meta(&mut tx, user_id, topic_id)
+        .await?
+        .ok_or(Error::new("Topic does not exist."))?;
+    let posts = if query_posts {
+        debug!("Querying for posts");
+        query_topic_posts(&mut tx, user_id, topic_id, limit, offset).await?
+    } else {
+        Vec::new()
+    };
+    tx.commit().await?;
+    Ok(Some(Topic { meta, posts }))
+}
 
 pub async fn query_topic_meta(
     tx: &mut Transaction<'_, Sqlite>,
