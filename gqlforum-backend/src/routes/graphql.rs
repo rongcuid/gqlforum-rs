@@ -1,10 +1,11 @@
+use std::{sync::Arc, pin::Pin};
+
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
     response::{Html, IntoResponse},
     Extension,
 };
-
 // use sqlx::SqlitePool;
 
 use crate::graphql::SchemaRoot;

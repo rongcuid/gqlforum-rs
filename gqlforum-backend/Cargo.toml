@@ -17,13 +17,16 @@ serde = { version = "1", features = ["derive"] }
 config = "0.13"
 
 axum = "0.5"
+# axum-extra = { version = "0.3.6", features = [ "cookie-signed" ] }
 hyper = "0.14"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.3", features = ["full"]}
-cookie = "0.16"
+cookie = { version = "0.16", features = [ "secure" ] }
 
 nanoid = "0.4"
+base64 = "0.13"
 sha2 = "0.10"
+hmac = { version = "0.12", features = ["std"] }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

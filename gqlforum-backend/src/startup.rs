@@ -16,6 +16,9 @@ use crate::{
 
 use crate::telemetry::{init_telemetry, setup_telemetry};
 
+#[derive(Clone)]
+pub struct HmacSecret(pub String);
+
 pub async fn run() {
     init_telemetry();
 
@@ -36,6 +39,7 @@ pub async fn run() {
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .extension(async_graphql::extensions::Tracing)
         .extension(async_graphql::extensions::ApolloTracing)
+        .data(HmacSecret(configuration.hmac_secret.clone()))
         .data(pool.clone())
         .finish();
 
@@ -44,7 +48,8 @@ pub async fn run() {
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
         .layer(Extension(pool))
-        .layer(Extension(schema));
+        .layer(Extension(schema))
+        .layer(Extension(configuration.hmac_secret.clone()));
 
     // add a fallback service for handling routes to unknown paths
     let app = app.fallback(handler_404.into_service());

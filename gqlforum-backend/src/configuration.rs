@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Settings {
+    pub hmac_secret: String,
     pub database: SQLite3Settings,
     pub port: u16,
 }
