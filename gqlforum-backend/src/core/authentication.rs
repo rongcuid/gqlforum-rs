@@ -1,6 +1,6 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use secrecy::{ExposeSecret, Secret};
-use sqlx::{query, query_as, sqlite::SqliteRow, FromRow, Row, Sqlite, SqlitePool};
+use sqlx::{query_as, sqlite::SqliteRow, FromRow, Row, SqlitePool};
 use tracing::instrument;
 
 use crate::telemetry::spawn_blocking_with_tracing;
@@ -43,7 +43,7 @@ async fn fetch_user_credentials(
 
 #[instrument(name = "Verify password hash", skip(credential, password))]
 fn verify_password_hash(credential: UserCredentials, password: Secret<String>) -> Option<i64> {
-    let hash = PasswordHash::new(&credential.phc_string.expose_secret()).ok()?;
+    let hash = PasswordHash::new(credential.phc_string.expose_secret()).ok()?;
     Argon2::default()
         .verify_password(password.expose_secret().as_bytes(), &hash)
         .ok()?;

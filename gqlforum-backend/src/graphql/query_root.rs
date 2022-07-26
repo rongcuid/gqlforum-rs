@@ -6,12 +6,9 @@ use sqlx::{Row, SqlitePool};
 
 pub struct QueryRoot;
 
-use crate::{
-    core::{
-        session::{try_get_verified_session_data, SessionCookie},
-        topics::{self, query_topic},
-    },
-    startup::HmacSecret,
+use crate::core::{
+    session::{try_get_verified_session_data, SessionCookie},
+    topics::{self, query_topic},
 };
 
 #[Object]

@@ -133,11 +133,15 @@ impl<'r> FromRow<'r, SqliteRow> for PostContent {
         let name: Option<String> = row.try_get("username")?;
         let signature: Option<String> = row.try_get("post_signature")?;
         let body: Option<String> = row.try_get("body")?;
-        let f = ||->Option<Self> {
+        let f = || -> Option<Self> {
             Some(Self {
-                            author: Author { id: id?, name: name?, signature},
-                            body: body?
-                        })
+                author: Author {
+                    id: id?,
+                    name: name?,
+                    signature,
+                },
+                body: body?,
+            })
         };
         f().ok_or(sqlx::Error::RowNotFound)
     }

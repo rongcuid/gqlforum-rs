@@ -1,6 +1,6 @@
 use async_graphql::{EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
-use cookie::Key;
+
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use std::net::SocketAddr;
 use std::str::FromStr;

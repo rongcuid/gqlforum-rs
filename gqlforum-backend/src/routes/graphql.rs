@@ -4,9 +4,8 @@ use axum::{
     response::{Html, IntoResponse},
     Extension,
 };
-use axum_extra::extract::{CookieJar, SignedCookieJar};
-use cookie::{Cookie, Key};
-use tracing::debug;
+use axum_extra::extract::CookieJar;
+
 // use sqlx::SqlitePool;
 
 use crate::{

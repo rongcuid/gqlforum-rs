@@ -2,7 +2,7 @@ use cookie::Cookie;
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sqlx::{query, sqlite::SqliteRow, FromRow, Row, Sqlite, SqlitePool, Transaction};
+use sqlx::{query, SqlitePool};
 use tracing::debug;
 
 #[derive(Clone, Debug)]
