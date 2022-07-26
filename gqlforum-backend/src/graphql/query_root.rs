@@ -8,7 +8,7 @@ pub struct QueryRoot;
 
 use crate::{
     core::{
-        authentication::{try_get_verified_session_data, SessionCookie},
+        session::{try_get_verified_session_data, SessionCookie},
         topics::{self, query_topic},
     },
     startup::HmacSecret,

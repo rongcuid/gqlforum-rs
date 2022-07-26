@@ -7,7 +7,7 @@ use axum::{
 use axum_extra::extract::SignedCookieJar;
 // use sqlx::SqlitePool;
 
-use crate::{core::authentication::SessionCookie, graphql::SchemaRoot, startup::SessionCookieName};
+use crate::{core::session::SessionCookie, graphql::SchemaRoot, startup::SessionCookieName};
 
 pub async fn graphql_handler(
     jar: SignedCookieJar,
