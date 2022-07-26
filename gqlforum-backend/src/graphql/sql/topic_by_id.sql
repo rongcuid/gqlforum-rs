@@ -1,15 +1,14 @@
--- Select posts from a topic, bindings (current_user, topic_id).
+-- Select posts from a topic, bindings (current_user, topic_id, limit, offset).
 -- Post contents are visible if they are not deleted or if current user is a moderator.
 -- Post numbers and deletion time are always visible.
 WITH meta AS (
     SELECT *
     FROM post_metadata
     WHERE post_metadata.topic_id = ?2
+    LIMIT ?3 OFFSET ?4
 ),
 content AS (
-    SELECT meta.post_id,
-        p.created_at,
-        p.updated_at,
+    SELECT p.id,
         p.author_user_id,
         p.body,
         u.username,
@@ -26,12 +25,12 @@ content AS (
 )
 SELECT meta.post_id,
     meta.post_number,
+    meta.created_at,
     meta.deleted_at,
-    content.created_at,
-    content.updated_at,
+    meta.updated_at,
     content.author_user_id,
     content.body,
     content.username,
     content.post_signature
 FROM meta
-    LEFT JOIN content ON meta.post_id = content.post_id;
+    LEFT JOIN content ON meta.post_id = content.id;

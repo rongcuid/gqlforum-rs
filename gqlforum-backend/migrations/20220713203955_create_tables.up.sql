@@ -73,6 +73,8 @@ SELECT p.id AS post_id,
         PARTITION BY p.topic_id
         ORDER BY p.created_at
     ) AS post_number,
+    p.created_at,
+    p.updated_at,
     p.deleted_at
 FROM topics t
     INNER JOIN posts p ON t.id = p.topic_id

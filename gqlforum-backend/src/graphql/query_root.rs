@@ -14,9 +14,15 @@ impl QueryRoot {
     // async fn board(&self, _ctx: &Context<'_>, _id: i64) -> Option<top_down::Board> {
     //     None
     // }
-    async fn topic(&self, ctx: &Context<'_>, topic_id: i64) -> Result<Option<topics::Topic>> {
+    async fn topic(
+        &self,
+        ctx: &Context<'_>,
+        topic_id: i64,
+        #[graphql(default = 10)] limit: i64,
+        #[graphql(default = 0)] offset: i64,
+    ) -> Result<Option<topics::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let user_id = Some(1); // TODO
+        let user_id = None; // TODO
         debug!("Querying for topics");
         let mut tx = pool.begin().await?;
         let meta = query_topic_meta(&mut tx, user_id, topic_id)
@@ -24,7 +30,7 @@ impl QueryRoot {
             .ok_or(Error::new("Topic does not exist."))?;
         let posts = if ctx.look_ahead().field("posts").exists() {
             debug!("Querying for posts");
-            query_topic_posts(&mut tx, user_id, topic_id).await?
+            query_topic_posts(&mut tx, user_id, topic_id, limit, offset).await?
         } else {
             Vec::new()
         };
