@@ -5,7 +5,7 @@ use tracing::debug;
 
 pub struct QueryRoot;
 
-use crate::graphql::topics::{query_topic, query_topic_meta, query_topic_posts};
+use crate::graphql::topics::query_topic;
 
 use super::topics;
 
@@ -13,10 +13,10 @@ use super::topics;
 impl QueryRoot {
     async fn topics(
         &self,
-        ctx: &Context<'_>,
-        topic_id: i64,
-        #[graphql(default = 10)] limit: i64,
-        #[graphql(default = 0)] offset: i64,
+        _ctx: &Context<'_>,
+        _topic_id: i64,
+        #[graphql(default = 10)] _limit: i64,
+        #[graphql(default = 0)] _offset: i64,
     ) -> Result<Vec<topics::Topic>> {
         todo!()
     }

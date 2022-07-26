@@ -1,10 +1,9 @@
 use async_graphql::*;
 
 use sqlx::{
-    query, query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite,
-    SqlitePool, Transaction,
+    query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite, SqlitePool,
+    Transaction,
 };
-use tracing::debug;
 
 pub async fn query_topic(
     pool: &SqlitePool,
@@ -19,7 +18,6 @@ pub async fn query_topic(
         .await?
         .ok_or(Error::new("Topic does not exist."))?;
     let posts = if query_posts {
-        debug!("Querying for posts");
         query_topic_posts(&mut tx, user_id, topic_id, limit, offset).await?
     } else {
         Vec::new()
@@ -33,19 +31,8 @@ pub async fn query_topic_meta(
     _user_id: Option<i64>,
     topic_id: i64,
 ) -> Result<Option<TopicMeta>> {
-    let meta = query(include_str!("sql/topic_meta.sql"))
+    let meta = query_as(include_str!("sql/topic_meta.sql"))
         .bind(topic_id)
-        .map(|row: SqliteRow| TopicMeta {
-            title: row.get("title"),
-            author: Author {
-                id: row.get("user_id"),
-                name: row.get("username"),
-                signature: row.get("post_signature"),
-            },
-            created_at: row.get("created_at"),
-            updated_at: row.get("updated_at"),
-            deleted_at: row.get("deleted_at"),
-        })
         .fetch_optional(tx)
         .await?;
     Ok(meta)
@@ -58,7 +45,6 @@ pub async fn query_topic_posts(
     limit: i64,
     offset: i64,
 ) -> Result<Vec<Post>> {
-    debug!("Querying for posts");
     let posts = query_as(include_str!("sql/topic_by_id.sql"))
         .bind(user_id)
         .bind(topic_id)
@@ -82,6 +68,22 @@ pub struct TopicMeta {
     pub created_at: PrimitiveDateTime,
     pub updated_at: Option<PrimitiveDateTime>,
     pub deleted_at: Option<PrimitiveDateTime>,
+}
+
+impl<'r> FromRow<'r, SqliteRow> for TopicMeta {
+    fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            title: row.try_get("title")?,
+            author: Author {
+                id: row.try_get("user_id")?,
+                name: row.try_get("username")?,
+                signature: row.try_get("post_signature")?,
+            },
+            created_at: row.try_get("created_at")?,
+            updated_at: row.try_get("updated_at")?,
+            deleted_at: row.try_get("deleted_at")?,
+        })
+    }
 }
 
 #[derive(SimpleObject)]
