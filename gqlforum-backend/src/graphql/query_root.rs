@@ -35,9 +35,7 @@ impl QueryRoot {
     ) -> Result<Option<topics::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let session_cookie = ctx.data::<SessionCookie>().unwrap();
-        let mut tx = pool.begin().await?;
-        let session_data = try_get_verified_session_data(&mut tx, session_cookie).await;
-        tx.commit().await?;
+        let session_data = try_get_verified_session_data(pool, session_cookie).await;
 
         query_topic(
             pool,

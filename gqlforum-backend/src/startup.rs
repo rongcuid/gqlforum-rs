@@ -57,7 +57,7 @@ pub async fn run() {
         .layer(Extension(SessionCookieName(
             configuration.session_cookie_name.clone(),
         )))
-        .layer(Extension(Key::from(configuration.hmac_secret.as_bytes())));
+        .layer(Extension(HmacSecret(configuration.hmac_secret.clone())));
 
     // add a fallback service for handling routes to unknown paths
     let app = app.fallback(handler_404.into_service());
