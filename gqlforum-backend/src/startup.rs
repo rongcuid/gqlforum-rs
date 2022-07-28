@@ -2,7 +2,7 @@ use async_graphql::{EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
 
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
-use std::net::SocketAddr;
+
 use std::str::FromStr;
 use tracing::{log::LevelFilter, *};
 
@@ -65,7 +65,9 @@ pub async fn run() {
     let app = setup_telemetry(app);
 
     // run it
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = format!("{}:{}", configuration.listen, configuration.port)
+        .parse()
+        .unwrap();
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
