@@ -17,33 +17,31 @@ pub async fn query_topic(
     query_posts: bool,
 ) -> Result<Option<Topic>> {
     debug!("Query topic {} for user {:?}", topic_id, user_id);
-    let mut tx = pool.begin().await?;
-    let meta = query_topic_meta(&mut tx, user_id, topic_id)
+    let meta = query_topic_meta(pool, user_id, topic_id)
         .await?
         .ok_or(Error::new("Topic does not exist."))?;
     let posts = if query_posts {
-        query_topic_posts(&mut tx, user_id, topic_id, limit, offset).await?
+        query_topic_posts(pool, user_id, topic_id, limit, offset).await?
     } else {
         Vec::new()
     };
-    tx.commit().await?;
     Ok(Some(Topic { meta, posts }))
 }
 
 pub async fn query_topic_meta(
-    tx: &mut Transaction<'_, Sqlite>,
+    pool: &SqlitePool,
     _user_id: Option<i64>,
     topic_id: i64,
 ) -> Result<Option<TopicMeta>> {
     let meta = query_as(include_str!("sql/topic_meta.sql"))
         .bind(topic_id)
-        .fetch_optional(tx)
+        .fetch_optional(pool)
         .await?;
     Ok(meta)
 }
 
 pub async fn query_topic_posts(
-    tx: &mut Transaction<'_, Sqlite>,
+    pool: &SqlitePool,
     user_id: Option<i64>,
     topic_id: i64,
     limit: i64,
@@ -54,16 +52,24 @@ pub async fn query_topic_posts(
         .bind(topic_id)
         .bind(limit)
         .bind(offset)
-        .fetch_all(tx)
+        .fetch_all(pool)
         .await?;
     Ok(posts)
 }
 
 #[derive(SimpleObject)]
+// #[graphql(complex)]
 pub struct Topic {
     pub meta: TopicMeta,
     pub posts: Vec<Post>,
 }
+
+// #[ComplexObject]
+// impl Topic {
+//     async fn posts(&self, ctx: &Context<'_>) -> Result<Vec<Post>> {
+//         let session_data = ctx.data::<Credential>().unwrap();
+//     }
+// }
 
 #[derive(SimpleObject)]
 pub struct TopicMeta {
