@@ -6,12 +6,18 @@ use sqlx::{Row, SqlitePool};
 
 pub struct QueryRoot;
 
-use crate::core::session::{try_get_verified_session_data, SessionCookie};
+use crate::core::session::{try_get_verified_session_data, Credential, SessionCookie, SessionData};
 
-use super::topic::{self, query_topic};
+use super::{
+    topic::{self, query_topic},
+    user::{User, UserBy},
+};
 
 #[Object]
 impl QueryRoot {
+    async fn user(&self, by: UserBy) -> Result<User> {
+        Err(Error::new("unimplemented"))
+    }
     async fn topics(
         &self,
         _ctx: &Context<'_>,
@@ -19,7 +25,7 @@ impl QueryRoot {
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
     ) -> Result<Vec<topic::Topic>> {
-        todo!()
+        Err(Error::new("unimplemented"))
     }
 
     async fn topic(
@@ -30,12 +36,11 @@ impl QueryRoot {
         #[graphql(default = 0)] offset: i64,
     ) -> Result<Option<topic::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let session_cookie = ctx.data::<SessionCookie>().unwrap();
-        let session_data = try_get_verified_session_data(pool, session_cookie).await;
+        let session_data = ctx.data::<Credential>().unwrap();
 
         query_topic(
             pool,
-            session_data.map(|d| d.user_id),
+            session_data.0.as_ref().map(|d| d.user_id),
             topic_id,
             limit,
             offset,

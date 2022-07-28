@@ -8,6 +8,8 @@ use tracing::debug;
 #[derive(Clone, Debug)]
 pub struct SessionCookie<'a>(pub Option<Cookie<'a>>);
 
+pub struct Credential(pub Option<SessionData>);
+
 #[derive(Serialize, Deserialize)]
 pub struct SessionData {
     pub user_id: i64,

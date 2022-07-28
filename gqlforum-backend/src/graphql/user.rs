@@ -3,6 +3,12 @@ use sqlx::{prelude::*, sqlite::SqliteRow};
 
 use super::{topic::Topic, post::Post};
 
+#[derive(Debug, OneofObject)]
+pub enum UserBy {
+    Username(String),
+    UserId(i64)
+}
+
 #[derive(SimpleObject, Debug)]
 #[graphql(complex)]
 pub struct User {

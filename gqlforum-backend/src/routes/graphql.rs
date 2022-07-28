@@ -5,11 +5,15 @@ use axum::{
     Extension,
 };
 use axum_extra::extract::CookieJar;
+use sqlx::SqlitePool;
 
 // use sqlx::SqlitePool;
 
 use crate::{
-    core::{cookies::verify_cookie_unchecked, session::SessionCookie},
+    core::{
+        cookies::verify_cookie_unchecked,
+        session::{try_get_verified_session_data, Credential, SessionCookie},
+    },
     graphql::SchemaRoot,
     startup::{HmacSecret, SessionCookieName},
 };
@@ -28,13 +32,18 @@ fn get_session_cookie<'a>(
 
 pub async fn graphql_handler(
     jar: CookieJar,
+    Extension(pool): Extension<SqlitePool>,
     Extension(name): Extension<SessionCookieName>,
     Extension(key): Extension<HmacSecret>,
     schema: Extension<SchemaRoot>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     let cookie = get_session_cookie(&jar, &name, &key);
-    schema.execute(req.0.data(cookie)).await.into()
+    let session_data = try_get_verified_session_data(&pool, &cookie).await;
+    schema
+        .execute(req.0.data(Credential(session_data)))
+        .await
+        .into()
 }
 
 pub async fn graphql_playground() -> impl IntoResponse {
