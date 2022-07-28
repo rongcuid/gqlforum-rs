@@ -6,10 +6,9 @@ use sqlx::{Row, SqlitePool};
 
 pub struct QueryRoot;
 
-use crate::core::{
-    session::{try_get_verified_session_data, SessionCookie},
-    topics::{self, query_topic},
-};
+use crate::core::session::{try_get_verified_session_data, SessionCookie};
+
+use super::topic::{self, query_topic};
 
 #[Object]
 impl QueryRoot {
@@ -19,7 +18,7 @@ impl QueryRoot {
         _topic_id: i64,
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
-    ) -> Result<Vec<topics::Topic>> {
+    ) -> Result<Vec<topic::Topic>> {
         todo!()
     }
 
@@ -29,7 +28,7 @@ impl QueryRoot {
         topic_id: i64,
         #[graphql(default = 10)] limit: i64,
         #[graphql(default = 0)] offset: i64,
-    ) -> Result<Option<topics::Topic>> {
+    ) -> Result<Option<topic::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let session_cookie = ctx.data::<SessionCookie>().unwrap();
         let session_data = try_get_verified_session_data(pool, session_cookie).await;
