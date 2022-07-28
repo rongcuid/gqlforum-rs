@@ -1,12 +1,12 @@
 use async_graphql::*;
 use sqlx::{prelude::*, sqlite::SqliteRow};
 
-use super::{topic::Topic, post::Post};
+use super::{post::Post, topic::Topic};
 
 #[derive(Debug, OneofObject)]
 pub enum UserBy {
     Username(String),
-    UserId(i64)
+    UserId(i64),
 }
 
 #[derive(SimpleObject, Debug)]
@@ -31,7 +31,7 @@ impl<'r> FromRow<'r, SqliteRow> for User {
 impl User {
     async fn topics(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
     ) -> Vec<Topic> {
@@ -40,7 +40,7 @@ impl User {
 
     async fn posts(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
     ) -> Vec<Post> {

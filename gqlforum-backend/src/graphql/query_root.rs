@@ -6,7 +6,7 @@ use sqlx::{Row, SqlitePool};
 
 pub struct QueryRoot;
 
-use crate::core::session::{try_get_verified_session_data, Credential, SessionCookie, SessionData};
+use crate::core::session::Credential;
 
 use super::{
     topic::{self, query_topic},
@@ -15,7 +15,7 @@ use super::{
 
 #[Object]
 impl QueryRoot {
-    async fn user(&self, by: UserBy) -> Result<User> {
+    async fn user(&self, _by: UserBy) -> Result<User> {
         Err(Error::new("unimplemented"))
     }
     async fn topics(
