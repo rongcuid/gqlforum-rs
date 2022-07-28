@@ -1,10 +1,9 @@
 use async_graphql::*;
 
-use sqlx::{
-    query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, Sqlite, SqlitePool,
-    Transaction,
-};
+use sqlx::{query_as, sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, SqlitePool};
 use tracing::debug;
+
+use crate::core::session::Credential;
 
 use super::{post::Post, user::User};
 
@@ -12,20 +11,15 @@ pub async fn query_topic(
     pool: &SqlitePool,
     user_id: Option<i64>,
     topic_id: i64,
-    limit: i64,
-    offset: i64,
-    query_posts: bool,
 ) -> Result<Option<Topic>> {
     debug!("Query topic {} for user {:?}", topic_id, user_id);
     let meta = query_topic_meta(pool, user_id, topic_id)
         .await?
         .ok_or(Error::new("Topic does not exist."))?;
-    let posts = if query_posts {
-        query_topic_posts(pool, user_id, topic_id, limit, offset).await?
-    } else {
-        Vec::new()
-    };
-    Ok(Some(Topic { meta, posts }))
+    Ok(Some(Topic {
+        meta,
+        // posts
+    }))
 }
 
 pub async fn query_topic_meta(
@@ -58,21 +52,28 @@ pub async fn query_topic_posts(
 }
 
 #[derive(SimpleObject)]
-// #[graphql(complex)]
+#[graphql(complex)]
 pub struct Topic {
     pub meta: TopicMeta,
-    pub posts: Vec<Post>,
 }
 
-// #[ComplexObject]
-// impl Topic {
-//     async fn posts(&self, ctx: &Context<'_>) -> Result<Vec<Post>> {
-//         let session_data = ctx.data::<Credential>().unwrap();
-//     }
-// }
+#[ComplexObject]
+impl Topic {
+    async fn posts(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(default = 10)] limit: i64,
+        #[graphql(default = 0)] offset: i64,
+    ) -> Result<Vec<Post>> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<Credential>().unwrap();
+        query_topic_posts(pool, cred.user_id(), self.meta.id, limit, offset).await
+    }
+}
 
 #[derive(SimpleObject)]
 pub struct TopicMeta {
+    pub id: i64,
     pub title: String,
     pub author: User,
     pub created_at: PrimitiveDateTime,
@@ -83,6 +84,7 @@ pub struct TopicMeta {
 impl<'r> FromRow<'r, SqliteRow> for TopicMeta {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
         Ok(Self {
+            id: row.try_get("topic_id")?,
             title: row.try_get("title")?,
             author: User {
                 id: row.try_get("user_id")?,

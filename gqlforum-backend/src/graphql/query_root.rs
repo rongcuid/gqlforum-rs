@@ -28,24 +28,10 @@ impl QueryRoot {
         Err(Error::new("unimplemented"))
     }
 
-    async fn topic(
-        &self,
-        ctx: &Context<'_>,
-        topic_id: i64,
-        #[graphql(default = 10)] limit: i64,
-        #[graphql(default = 0)] offset: i64,
-    ) -> Result<Option<topic::Topic>> {
+    async fn topic(&self, ctx: &Context<'_>, topic_id: i64) -> Result<Option<topic::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let session_data = ctx.data::<Credential>().unwrap();
 
-        query_topic(
-            pool,
-            session_data.0.as_ref().map(|d| d.user_id),
-            topic_id,
-            limit,
-            offset,
-            ctx.look_ahead().field("posts").exists(),
-        )
-        .await
+        query_topic(pool, session_data.0.as_ref().map(|d| d.user_id), topic_id).await
     }
 }

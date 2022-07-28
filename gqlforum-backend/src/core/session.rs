@@ -10,6 +10,12 @@ pub struct SessionCookie<'a>(pub Option<Cookie<'a>>);
 
 pub struct Credential(pub Option<SessionData>);
 
+impl Credential {
+    pub fn user_id(&self) -> Option<i64> {
+        Some(self.0.as_ref()?.user_id)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct SessionData {
     pub user_id: i64,

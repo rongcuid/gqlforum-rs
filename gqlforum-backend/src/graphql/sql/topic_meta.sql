@@ -2,6 +2,7 @@ SELECT users.id user_id,
     users.username,
     users.post_signature,
     topics.title,
+    topics.id AS topic_id,
     topics.created_at,
     topics.updated_at,
     topics.deleted_at
