@@ -1,11 +1,15 @@
 use async_graphql::*;
 
+use hmac::Mac;
+
 use sqlx::{Row, SqlitePool};
-use tracing::debug;
 
 pub struct QueryRoot;
 
-use crate::core::topics::{self, query_topic};
+use crate::core::{
+    session::{try_get_verified_session_data, SessionCookie},
+    topics::{self, query_topic},
+};
 
 #[Object]
 impl QueryRoot {
@@ -27,12 +31,12 @@ impl QueryRoot {
         #[graphql(default = 0)] offset: i64,
     ) -> Result<Option<topics::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let user_id = None; // TODO
-        debug!("Querying for topics");
+        let session_cookie = ctx.data::<SessionCookie>().unwrap();
+        let session_data = try_get_verified_session_data(pool, session_cookie).await;
 
         query_topic(
             pool,
-            user_id,
+            session_data.map(|d| d.user_id),
             topic_id,
             limit,
             offset,

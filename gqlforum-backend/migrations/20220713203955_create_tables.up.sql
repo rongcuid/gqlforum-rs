@@ -101,7 +101,10 @@ CREATE TABLE past_moderators(
 );
 -- Sessions
 CREATE TABLE active_sessions(
-    id BLOB PRIMARY KEY,
+    session_user_id INTEGER,
+    token_hash BLOB,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP
+    expires_at TIMESTAMP,
+    PRIMARY KEY(session_user_id, token_hash),
+    FOREIGN KEY(session_user_id) REFERENCES users(id)
 );
