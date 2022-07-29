@@ -47,7 +47,7 @@ features = [
     "dataloader",
     "time",
     "tracing",
-    "apollo_tracing",
+    # "apollo_tracing",
 ]
 
 [dependencies.sqlx]

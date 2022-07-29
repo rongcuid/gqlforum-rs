@@ -1,5 +1,32 @@
 = GraphQL Forum
 
+== Features
+
+=== Basic Functionality
+
+* [x] Website board
+* [x] Topic by id
+* [ ] Create topic
+* [ ] Create post
+
+=== Authentication
+
+* [x] Sessions
+* [x] Password authentication
+* [x] Login via username/password
+* [ ] Associate email
+* [ ] Login via email/password
+* [ ] Registration
+* [ ] Change password
+* [ ] Reset password
+
+=== Authorization
+
+* [x] Moderators
+* [x] Only admins/moderators/author can see deleted topics and posts
+* [x] Regular users can see their own posts/topics and any public posts/topics
+* [ ] Regular users cannot unset deletion
+
 == Design Choices
 
 === N+1
@@ -12,3 +39,11 @@ See: https://www.sqlite.org/np1queryprob.html.
 
 Metadata consistency and access control are ensured on SQL queries instead of at application level.
 Access control comes in form of 4 views: `topic_permissions`, `topic_public`, `post_permissions`, and `post_public`.
+
+=== Invariants
+
+* Posts are never deleted from database.
+* Post number is never changed.
+* Post metadata is always accessible, but contents can only be viewed as permitted.
+
+These invariants are enforced by the SQL query used to access posts.
