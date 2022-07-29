@@ -1,4 +1,4 @@
-use sqlx::{query_as, Executor, SqliteExecutor};
+use sqlx::{query_as, SqliteExecutor};
 
 use crate::graphql::post::Post;
 

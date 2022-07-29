@@ -1,0 +1,14 @@
+= GraphQL Forum
+
+== Design Choices
+
+=== N+1
+
+N+1 is not purposefully avoided.
+Joins are used to ensure correctness and access control, but not for performance (yet).
+See: https://www.sqlite.org/np1queryprob.html.
+
+=== Access Control
+
+Metadata consistency and access control are ensured on SQL queries instead of at application level.
+Access control comes in form of 4 views: `topic_permissions`, `topic_public`, `post_permissions`, and `post_public`.

@@ -1,4 +1,3 @@
-use async_graphql::dataloader::*;
 use async_graphql::*;
 use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime};
 
