@@ -8,7 +8,7 @@ use crate::core::session::UserCredential;
 
 use super::{
     session::Session,
-    sql::{query_topic_by_id, query_user},
+    sql::{query_board_topic_ids, query_topic_by_id, query_user},
     topic,
     user::{User, UserBy},
 };
@@ -31,14 +31,23 @@ impl QueryRoot {
         let cred = ctx.data::<UserCredential>().unwrap();
         query_user(pool, cred, by).await.map_err(Error::from)
     }
-    async fn topics(
+    async fn board(
         &self,
-        _ctx: &Context<'_>,
-        _topic_id: i64,
-        #[graphql(default = 10)] _limit: i64,
-        #[graphql(default = 0)] _offset: i64,
+        ctx: &Context<'_>,
+        #[graphql(default = 10)] limit: i64,
+        #[graphql(default = 0)] offset: i64,
     ) -> Result<Vec<topic::Topic>> {
-        Err(Error::new("unimplemented"))
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        let topic_ids = query_board_topic_ids(pool, cred, limit, offset).await?;
+        // N+1 query here
+        let mut v = Vec::new();
+        for id in topic_ids {
+            if let Some(topic) = query_topic_by_id(pool, cred, id).await? {
+                v.push(topic);
+            }
+        }
+        Ok(v)
     }
 
     async fn topic(&self, ctx: &Context<'_>, topic_id: i64) -> Result<Option<topic::Topic>> {
