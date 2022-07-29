@@ -1,4 +1,4 @@
-use sqlx::{query_as, SqlitePool};
+use sqlx::{query_as, Executor, Sqlite};
 use tracing::debug;
 
 use crate::{
@@ -6,8 +6,8 @@ use crate::{
     graphql::topic::{Topic, TopicMeta},
 };
 
-pub async fn query_topic_by_id(
-    pool: &SqlitePool,
+pub async fn query_topic_by_id<'e, E: Executor<'e, Database = Sqlite>>(
+    pool: E,
     cred: &UserCredential,
     topic_id: i64,
 ) -> Result<Option<Topic>, sqlx::Error> {
@@ -18,8 +18,8 @@ pub async fn query_topic_by_id(
     Ok(topic())
 }
 
-async fn query_topic_meta(
-    pool: &SqlitePool,
+async fn query_topic_meta<'e, E: Executor<'e, Database = Sqlite>>(
+    pool: E,
     _cred: &UserCredential,
     topic_id: i64,
 ) -> Result<Option<TopicMeta>, sqlx::Error> {
