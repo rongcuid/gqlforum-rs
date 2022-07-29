@@ -1,12 +1,10 @@
 use sqlx::{query_as, SqlitePool};
 use tracing::debug;
 
-use crate::graphql::{
-    post::Post,
-    topic::{Topic, TopicMeta},
+use crate::{
+    core::session::UserCredential,
+    graphql::topic::{Topic, TopicMeta},
 };
-
-use super::session::UserCredential;
 
 pub async fn query_topic_by_id(
     pool: &SqlitePool,
@@ -20,7 +18,7 @@ pub async fn query_topic_by_id(
     Ok(topic())
 }
 
-pub async fn query_topic_meta(
+async fn query_topic_meta(
     pool: &SqlitePool,
     _cred: &UserCredential,
     topic_id: i64,
@@ -30,21 +28,4 @@ pub async fn query_topic_meta(
         .fetch_optional(pool)
         .await?;
     Ok(meta)
-}
-
-pub async fn query_posts_by_topic_id(
-    pool: &SqlitePool,
-    user_id: Option<i64>,
-    topic_id: i64,
-    limit: i64,
-    offset: i64,
-) -> Result<Vec<Post>, sqlx::Error> {
-    let posts = query_as(include_str!("posts_by_topic_id.sql"))
-        .bind(user_id)
-        .bind(topic_id)
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(pool)
-        .await?;
-    Ok(posts)
 }

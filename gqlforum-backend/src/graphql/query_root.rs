@@ -4,9 +4,10 @@ use sqlx::SqlitePool;
 
 pub struct QueryRoot;
 
-use crate::core::{session::UserCredential, sql::query_topic_by_id};
+use crate::core::session::UserCredential;
 
 use super::{
+    sql::query_topic_by_id,
     topic,
     user::{User, UserBy},
 };

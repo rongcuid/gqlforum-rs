@@ -2,9 +2,9 @@ use async_graphql::*;
 
 use sqlx::{sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, SqlitePool};
 
-use crate::core::{session::UserCredential, sql::query_posts_by_topic_id};
+use crate::core::session::UserCredential;
 
-use super::{post::Post, user::User};
+use super::{post::Post, sql::query_posts_by_topic_id, user::User};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]

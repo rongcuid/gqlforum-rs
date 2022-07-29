@@ -3,6 +3,7 @@ pub mod query_root;
 pub mod subscription_root;
 
 pub mod post;
+mod sql;
 pub mod topic;
 pub mod user;
 
