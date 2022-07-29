@@ -32,7 +32,8 @@ pub async fn run() {
         .expect("Failed to create SqlitePoolOptions")
         .create_if_missing(true)
         .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
-        .pragma("temp_store", "2");
+        .auto_vacuum(sqlx::sqlite::SqliteAutoVacuum::Incremental)
+        .pragma("temp_store", "MEMORY");
     options.log_statements(LevelFilter::Trace);
     let pool = SqlitePool::connect_with(options)
         .await
