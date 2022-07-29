@@ -8,11 +8,17 @@ use tracing::debug;
 #[derive(Clone, Debug)]
 pub struct SessionCookie<'a>(pub Option<Cookie<'a>>);
 
-pub struct UserCredential(pub Option<SessionData>);
+pub struct UserCredential(Option<SessionData>);
 
 impl UserCredential {
+    pub fn new(session: Option<SessionData>) -> Self {
+        Self(session)
+    }
     pub fn user_id(&self) -> Option<i64> {
         Some(self.0.as_ref()?.user_id)
+    }
+    pub fn session(&self) -> Option<&SessionData> {
+        self.0.as_ref()
     }
 }
 

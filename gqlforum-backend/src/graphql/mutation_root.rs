@@ -52,7 +52,7 @@ impl MutationRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
 
-        if let Some(session) = cred.0.as_ref() {
+        if let Some(session) = cred.session() {
             delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
             Ok(true)
         } else {

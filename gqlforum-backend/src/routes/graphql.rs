@@ -41,7 +41,7 @@ pub async fn graphql_handler(
     let cookie = get_session_cookie(&jar, &name, &key);
     let session_data = try_get_verified_session_data(&pool, &cookie).await;
     schema
-        .execute(req.0.data(UserCredential(session_data)))
+        .execute(req.0.data(UserCredential::new(session_data)))
         .await
         .into()
 }
