@@ -5,8 +5,8 @@ use super::{post::Post, topic::Topic};
 
 #[derive(Debug, OneofObject)]
 pub enum UserBy {
-    Username(String),
-    UserId(i64),
+    Name(String),
+    Id(i64),
 }
 
 #[derive(SimpleObject, Debug)]
@@ -21,8 +21,8 @@ impl<'r> FromRow<'r, SqliteRow> for User {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
         Ok(Self {
             id: row.try_get("id")?,
-            name: row.try_get("name")?,
-            signature: row.try_get("signature")?,
+            name: row.try_get("username")?,
+            signature: row.try_get("post_signature")?,
         })
     }
 }
@@ -34,8 +34,8 @@ impl User {
         _ctx: &Context<'_>,
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
-    ) -> Vec<Topic> {
-        todo!()
+    ) -> Result<Vec<Topic>> {
+        Err(Error::new("unimplemented"))
     }
 
     async fn posts(
@@ -43,7 +43,7 @@ impl User {
         _ctx: &Context<'_>,
         #[graphql(default = 10)] _limit: i64,
         #[graphql(default = 0)] _offset: i64,
-    ) -> Vec<Post> {
-        todo!()
+    ) -> Result<Vec<Post>> {
+        Err(Error::new("unimplemented"))
     }
 }

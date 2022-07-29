@@ -7,15 +7,17 @@ pub struct QueryRoot;
 use crate::core::session::UserCredential;
 
 use super::{
-    sql::query_topic_by_id,
+    sql::{query_topic_by_id, query_user},
     topic,
     user::{User, UserBy},
 };
 
 #[Object]
 impl QueryRoot {
-    async fn user(&self, _by: UserBy) -> Result<User> {
-        Err(Error::new("unimplemented"))
+    async fn user(&self, ctx: &Context<'_>, by: UserBy) -> Result<Option<User>> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        query_user(pool, cred, by).await.map_err(Error::from)
     }
     async fn topics(
         &self,
