@@ -30,7 +30,9 @@ pub async fn run() {
 
     let mut options = SqliteConnectOptions::from_str(&configuration.database.connection)
         .expect("Failed to create SqlitePoolOptions")
-        .create_if_missing(true);
+        .create_if_missing(true)
+        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
+        .pragma("temp_store", "2");
     options.log_statements(LevelFilter::Trace);
     let pool = SqlitePool::connect_with(options)
         .await
