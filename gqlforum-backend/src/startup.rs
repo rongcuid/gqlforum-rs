@@ -4,7 +4,7 @@ use axum::{handler::Handler, routing::get, Extension, Router};
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 
 use std::str::FromStr;
-use tracing::{log::LevelFilter, *};
+use tracing::log::LevelFilter;
 
 use crate::{
     configuration::get_configuration,
@@ -30,7 +30,10 @@ pub async fn run() {
 
     let mut options = SqliteConnectOptions::from_str(&configuration.database.connection)
         .expect("Failed to create SqlitePoolOptions")
-        .create_if_missing(true);
+        .create_if_missing(true)
+        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
+        .auto_vacuum(sqlx::sqlite::SqliteAutoVacuum::Incremental)
+        .pragma("temp_store", "MEMORY");
     options.log_statements(LevelFilter::Trace);
     let pool = SqlitePool::connect_with(options)
         .await

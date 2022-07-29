@@ -8,10 +8,7 @@ use crate::{
     core::{
         authentication::validate_user_credentials,
         cookies::sign_cookie_unchecked,
-        session::{
-            delete_session, insert_session, try_get_verified_session_data, SessionCookie,
-            SessionData,
-        },
+        session::{delete_session, insert_session, SessionData, UserCredential},
     },
     startup::{HmacSecret, SessionCookieName},
 };
@@ -24,11 +21,9 @@ impl MutationRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let key = ctx.data::<HmacSecret>().unwrap();
         let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
-        let session_cookie = ctx.data::<SessionCookie>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
 
-        let session = try_get_verified_session_data(pool, session_cookie).await;
-
-        if session.is_some() {
+        if cred.user_id().is_some() {
             Err(Error::new("Already logged in"))
         } else if let Some(user_id) =
             validate_user_credentials(pool, username, Secret::new(password)).await
@@ -55,14 +50,10 @@ impl MutationRoot {
     }
     async fn logout(&self, ctx: &Context<'_>) -> Result<bool> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        // let key = ctx.data::<HmacSecret>().unwrap();
-        // let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
-        let session_cookie = ctx.data::<SessionCookie>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
 
-        let session = try_get_verified_session_data(pool, session_cookie).await;
-
-        if let Some(session) = session {
-            delete_session(pool, session.user_id, Secret::new(session.secret)).await?;
+        if let Some(session) = cred.session() {
+            delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
             Ok(true)
         } else {
             Err(Error::new("Already logged out"))
