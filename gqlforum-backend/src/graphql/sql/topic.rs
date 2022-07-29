@@ -1,4 +1,4 @@
-use sqlx::{query_as, Executor, Sqlite, SqliteExecutor};
+use sqlx::{query_as, Executor, SqliteExecutor};
 use tracing::debug;
 
 use crate::{

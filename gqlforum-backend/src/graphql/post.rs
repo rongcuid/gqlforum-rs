@@ -1,11 +1,8 @@
-use std::{sync::Arc, collections::HashMap};
-
-use async_graphql::*;
 use async_graphql::dataloader::*;
-use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime, Sqlite, SqliteExecutor, SqlitePool};
+use async_graphql::*;
+use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime};
 
 use super::user::User;
-
 
 #[derive(SimpleObject, Clone)]
 pub struct Post {

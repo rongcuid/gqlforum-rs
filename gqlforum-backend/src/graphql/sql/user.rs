@@ -1,4 +1,4 @@
-use sqlx::{query, query_as, Executor, Sqlite, SqliteExecutor};
+use sqlx::{query, query_as, Executor, SqliteExecutor};
 
 use crate::{
     core::session::UserCredential,

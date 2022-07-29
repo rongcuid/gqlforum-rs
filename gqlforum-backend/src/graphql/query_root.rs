@@ -8,7 +8,7 @@ use crate::core::session::UserCredential;
 
 use super::{
     session::Session,
-    sql::{query_role, query_topic_by_id, query_user},
+    sql::{query_topic_by_id, query_user},
     topic,
     user::{User, UserBy},
 };
@@ -20,13 +20,7 @@ impl QueryRoot {
         let cred = ctx.data::<UserCredential>().unwrap();
         if let Some(id) = cred.user_id() {
             let user = query_user(pool, cred, UserBy::Id(id)).await?;
-            let role = query_role(pool, id).await?;
-            let f = || {
-                Some(Session {
-                    user: user?,
-                    role: role?,
-                })
-            };
+            let f = || Some(Session { user: user? });
             Ok(f())
         } else {
             Ok(None)
