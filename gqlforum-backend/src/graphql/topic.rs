@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use sqlx::{sqlite::SqliteRow, types::time::PrimitiveDateTime, FromRow, Row, SqlitePool};
 
-use crate::core::{session::Credential, sql::query_posts_by_topic_id};
+use crate::core::{session::UserCredential, sql::query_posts_by_topic_id};
 
 use super::{post::Post, user::User};
 
@@ -21,7 +21,7 @@ impl Topic {
         #[graphql(default = 0)] offset: i64,
     ) -> Result<Vec<Post>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let cred = ctx.data::<Credential>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
         query_posts_by_topic_id(pool, cred.user_id(), self.meta.id, limit, offset)
             .await
             .map_err(Error::from)

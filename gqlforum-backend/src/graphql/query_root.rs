@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 
 pub struct QueryRoot;
 
-use crate::core::{session::Credential, sql::query_topic};
+use crate::core::{session::UserCredential, sql::query_topic_by_id};
 
 use super::{
     topic,
@@ -28,9 +28,9 @@ impl QueryRoot {
 
     async fn topic(&self, ctx: &Context<'_>, topic_id: i64) -> Result<Option<topic::Topic>> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let cred = ctx.data::<Credential>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
 
-        query_topic(pool, cred.0.as_ref().map(|d| d.user_id), topic_id)
+        query_topic_by_id(pool, cred, topic_id)
             .await
             .map_err(Error::from)
     }
