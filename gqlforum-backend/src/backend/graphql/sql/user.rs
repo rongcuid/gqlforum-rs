@@ -1,11 +1,9 @@
 use sqlx::{query, query_as, SqliteExecutor};
 
-use crate::{
-    core::session::UserCredential,
-    graphql::{
-        session::Role,
-        user::{User, UserBy},
-    },
+use crate::backend::core::session::UserCredential;
+use crate::backend::graphql::{
+    session::Role,
+    user::{User, UserBy},
 };
 
 pub async fn query_user<'e, E: SqliteExecutor<'e>>(

@@ -1,18 +1,18 @@
 use async_graphql::{EmptySubscription, Schema};
-use axum::{handler::Handler, routing::get, Extension, Router};
+use axum::{Extension, handler::Handler, http::HeaderValue, Router, routing::get};
 
-use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+use sqlx::{ConnectOptions, sqlite::SqliteConnectOptions, SqlitePool};
 
 use std::str::FromStr;
+use tower::builder::ServiceBuilder;
+use tower_http::cors::CorsLayer;
 use tracing::log::LevelFilter;
 
-use crate::{
-    configuration::get_configuration,
-    graphql::{MutationRoot, QueryRoot},
-    routes::{
-        fallback::handler_404,
-        graphql::{graphql_handler, graphql_playground},
-    },
+use crate::configuration::get_configuration;
+use crate::backend::graphql::{MutationRoot, QueryRoot};
+use crate::backend::routes::{
+    fallback::handler_404,
+    graphql::{graphql_handler, graphql_playground},
 };
 
 use crate::telemetry::{init_telemetry, setup_telemetry};
@@ -55,12 +55,19 @@ pub async fn run() {
     let app = Router::new()
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
-        .layer(Extension(pool))
-        .layer(Extension(schema))
-        .layer(Extension(SessionCookieName(
-            configuration.session_cookie_name.clone(),
-        )))
-        .layer(Extension(HmacSecret(configuration.hmac_secret.clone())));
+        .layer(
+            ServiceBuilder::new()
+                // .layer(
+                    // CorsLayer::new()
+                        // .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap()),
+                // )
+                .layer(Extension(pool))
+                .layer(Extension(schema))
+                .layer(Extension(SessionCookieName(
+                    configuration.session_cookie_name.clone(),
+                )))
+                .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+        );
 
     // add a fallback service for handling routes to unknown paths
     let app = app.fallback(handler_404.into_service());

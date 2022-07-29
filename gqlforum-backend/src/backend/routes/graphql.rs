@@ -1,8 +1,8 @@
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
-    response::{Html, IntoResponse},
     Extension,
+    response::{Html, IntoResponse},
 };
 use axum_extra::extract::CookieJar;
 use sqlx::SqlitePool;
@@ -10,13 +10,13 @@ use sqlx::SqlitePool;
 // use sqlx::SqlitePool;
 
 use crate::{
-    core::{
-        cookies::verify_cookie_unchecked,
-        session::{try_get_verified_session_data, SessionCookie, UserCredential},
-    },
-    graphql::SchemaRoot,
     startup::{HmacSecret, SessionCookieName},
 };
+use crate::backend::core::{
+    cookies::verify_cookie_unchecked,
+    session::{SessionCookie, try_get_verified_session_data, UserCredential},
+};
+use crate::backend::graphql::SchemaRoot;
 
 fn get_session_cookie<'a>(
     jar: &CookieJar,
