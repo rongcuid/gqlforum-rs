@@ -4,7 +4,7 @@ use axum::{handler::Handler, routing::get, Extension, Router};
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 
 use std::str::FromStr;
-use tracing::{log::LevelFilter, *};
+use tracing::log::LevelFilter;
 
 use crate::{
     configuration::get_configuration,

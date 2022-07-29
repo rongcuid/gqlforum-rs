@@ -1,15 +1,13 @@
 use async_graphql::*;
 
-use hmac::Mac;
-
-use sqlx::{Row, SqlitePool};
+use sqlx::SqlitePool;
 
 pub struct QueryRoot;
 
 use crate::core::{session::Credential, sql::query_topic};
 
 use super::{
-    topic::{self},
+    topic,
     user::{User, UserBy},
 };
 

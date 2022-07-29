@@ -1,4 +1,4 @@
-use sqlx::{prelude::*, query_as, SqlitePool};
+use sqlx::{query_as, SqlitePool};
 use tracing::debug;
 
 use crate::graphql::{
