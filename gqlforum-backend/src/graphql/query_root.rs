@@ -6,10 +6,10 @@ use sqlx::{Row, SqlitePool};
 
 pub struct QueryRoot;
 
-use crate::core::session::Credential;
+use crate::core::{session::Credential, sql::query_topic};
 
 use super::{
-    topic::{self, query_topic},
+    topic::{self},
     user::{User, UserBy},
 };
 
@@ -32,6 +32,8 @@ impl QueryRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<Credential>().unwrap();
 
-        query_topic(pool, cred.0.as_ref().map(|d| d.user_id), topic_id).await
+        query_topic(pool, cred.0.as_ref().map(|d| d.user_id), topic_id)
+            .await
+            .map_err(Error::from)
     }
 }
