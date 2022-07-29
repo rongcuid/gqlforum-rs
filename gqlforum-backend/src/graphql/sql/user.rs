@@ -1,8 +1,11 @@
-use sqlx::{query_as, SqlitePool};
+use sqlx::{query, query_as, SqlitePool};
 
 use crate::{
     core::session::UserCredential,
-    graphql::user::{User, UserBy},
+    graphql::{
+        session::Role,
+        user::{User, UserBy},
+    },
 };
 
 pub async fn query_user(
@@ -25,4 +28,20 @@ pub async fn query_user(
         }
     };
     Ok(user)
+}
+
+pub async fn query_role(pool: &SqlitePool, user_id: i64) -> Result<Option<Role>, sqlx::Error> {
+    if user_id == 1 {
+        return Ok(Some(Role::Administrator));
+    }
+    let is_moderator = query("SELECT 1 FROM moderators WHERE moderator_user_id = ?")
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?
+        .is_some();
+    if is_moderator {
+        Ok(Some(Role::Moderator))
+    } else {
+        Ok(Some(Role::Regular))
+    }
 }
