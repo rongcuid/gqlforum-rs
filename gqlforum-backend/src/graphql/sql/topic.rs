@@ -1,4 +1,4 @@
-use sqlx::{query_as, Executor, Sqlite};
+use sqlx::{query_as, Executor, Sqlite, SqliteExecutor};
 use tracing::debug;
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
     graphql::topic::{Topic, TopicMeta},
 };
 
-pub async fn query_topic_by_id<'e, E: Executor<'e, Database = Sqlite>>(
+pub async fn query_topic_by_id<'e, E: SqliteExecutor<'e>>(
     pool: E,
     cred: &UserCredential,
     topic_id: i64,
@@ -18,7 +18,7 @@ pub async fn query_topic_by_id<'e, E: Executor<'e, Database = Sqlite>>(
     Ok(topic())
 }
 
-async fn query_topic_meta<'e, E: Executor<'e, Database = Sqlite>>(
+async fn query_topic_meta<'e, E: SqliteExecutor<'e>>(
     pool: E,
     _cred: &UserCredential,
     topic_id: i64,

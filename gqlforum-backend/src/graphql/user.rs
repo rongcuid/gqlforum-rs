@@ -1,7 +1,9 @@
-use async_graphql::*;
-use sqlx::{prelude::*, sqlite::SqliteRow};
+use std::sync::Arc;
 
-use super::{post::Post, topic::Topic};
+use async_graphql::{dataloader::Loader, *};
+use sqlx::{prelude::*, sqlite::SqliteRow, SqlitePool};
+
+use super::{post::Post, session::Role, sql::query_role, topic::Topic};
 
 #[derive(Debug, OneofObject)]
 pub enum UserBy {
@@ -9,7 +11,7 @@ pub enum UserBy {
     Id(i64),
 }
 
-#[derive(SimpleObject, Debug)]
+#[derive(SimpleObject, Debug, Clone)]
 #[graphql(complex)]
 pub struct User {
     pub id: i64,
@@ -29,6 +31,13 @@ impl<'r> FromRow<'r, SqliteRow> for User {
 
 #[ComplexObject]
 impl User {
+    async fn role(&self, ctx: &Context<'_>) -> Result<Role> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        query_role(pool, self.id)
+            .await?
+            .ok_or(Error::new("user does not exist"))
+    }
+
     async fn topics(
         &self,
         _ctx: &Context<'_>,

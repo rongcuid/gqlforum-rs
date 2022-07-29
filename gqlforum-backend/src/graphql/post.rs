@@ -1,9 +1,13 @@
+use std::{sync::Arc, collections::HashMap};
+
 use async_graphql::*;
-use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime};
+use async_graphql::dataloader::*;
+use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime, Sqlite, SqliteExecutor, SqlitePool};
 
 use super::user::User;
 
-#[derive(SimpleObject)]
+
+#[derive(SimpleObject, Clone)]
 pub struct Post {
     pub meta: PostMeta,
     pub content: Option<PostContent>,
@@ -17,7 +21,7 @@ impl<'r> FromRow<'r, SqliteRow> for Post {
     }
 }
 
-#[derive(SimpleObject, Debug)]
+#[derive(SimpleObject, Debug, Clone)]
 pub struct PostMeta {
     pub post_number: i64,
     pub created_at: PrimitiveDateTime,
@@ -36,7 +40,7 @@ impl<'r> FromRow<'r, SqliteRow> for PostMeta {
     }
 }
 
-#[derive(SimpleObject, Debug)]
+#[derive(SimpleObject, Debug, Clone)]
 pub struct PostContent {
     pub author: User,
     pub body: String,

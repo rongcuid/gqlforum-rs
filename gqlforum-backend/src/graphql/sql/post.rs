@@ -1,8 +1,8 @@
-use sqlx::{query_as, Executor, Sqlite};
+use sqlx::{query_as, Executor, Sqlite, SqliteExecutor};
 
 use crate::graphql::post::Post;
 
-pub async fn query_posts_by_topic_id<'e, E: Executor<'e, Database = Sqlite>>(
+pub async fn query_posts_by_topic_id<'e, E: SqliteExecutor<'e>>(
     pool: E,
     user_id: Option<i64>,
     topic_id: i64,

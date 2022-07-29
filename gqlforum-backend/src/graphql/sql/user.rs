@@ -1,4 +1,4 @@
-use sqlx::{query, query_as, Executor, Sqlite};
+use sqlx::{query, query_as, Executor, Sqlite, SqliteExecutor};
 
 use crate::{
     core::session::UserCredential,
@@ -8,7 +8,7 @@ use crate::{
     },
 };
 
-pub async fn query_user<'e, E: Executor<'e, Database = Sqlite>>(
+pub async fn query_user<'e, E: SqliteExecutor<'e>>(
     pool: E,
     _cred: &UserCredential,
     by: UserBy,
@@ -30,7 +30,7 @@ pub async fn query_user<'e, E: Executor<'e, Database = Sqlite>>(
     Ok(user)
 }
 
-pub async fn query_role<'e, E: Executor<'e, Database = Sqlite>>(
+pub async fn query_role<'e, E: SqliteExecutor<'e>>(
     pool: E,
     user_id: i64,
 ) -> Result<Option<Role>, sqlx::Error> {
