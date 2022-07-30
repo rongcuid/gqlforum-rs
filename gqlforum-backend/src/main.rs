@@ -1,6 +1,8 @@
 use gqlforum_backend::startup::run;
 
-#[tokio::main]
+
+#[perseus::engine_main]
 async fn main() {
-    run().await;
+    let exit_code = run().await;
+    std::process::exit(exit_code);
 }
