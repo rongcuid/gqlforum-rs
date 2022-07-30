@@ -13,7 +13,7 @@ query {
 
 export function App() {
   const [count, setCount] = useState(0);
-  const [result, reexecuteQuery] = useQuery({
+  const [result, _] = useQuery({
     query: query,
   });
   const { data, fetching, error } = result;
@@ -36,9 +36,9 @@ export function App() {
           Edit <code>src/app.tsx</code> and save to test HMR
         </p>
       </div>
-      {fetching ? <p>LOADING</p> : ""}
-      {error ? <p>ERROR</p> : ""}
-      {data ? <p>{data.user.name}</p> : ""}
+      {fetching ? <p>GraphQL LOADING</p> : ""}
+      {error ? <p>GraphQL ERROR</p> : ""}
+      {data ? <p>Admin: {data.user.name}</p> : ""}
       <p class="read-the-docs">
         Click on the Vite and Preact logos to learn more
       </p>
