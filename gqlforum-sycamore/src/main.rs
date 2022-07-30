@@ -1,9 +1,11 @@
 pub mod graphql;
 
+use std::panic;
+
 use serde::{Deserialize, Serialize};
 use sycamore::{prelude::*, suspense::Suspense};
 
-use crate::graphql::Client;
+use crate::graphql::GraphQLClient;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct User {
@@ -14,7 +16,7 @@ struct User {
 
 #[component]
 async fn TestGql<G: Html>(cx: Scope<'_>) -> View<G> {
-    let client = Client::new("http://localhost:3000/graphql");
+    let client = use_context::<GraphQLClient>(cx);
     let resp1 = client
         .query_raw(
             r#"
@@ -49,7 +51,10 @@ async fn TestAsync<G: Html>(cx: Scope<'_>) -> View<G> {
 }
 
 fn main() {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
     sycamore::render(|cx| {
+        let client = GraphQLClient::new("http://localhost:3000/graphql");
+        provide_context(cx, client);
         view! { cx,
             p { "Hello, World!" }
             Suspense {

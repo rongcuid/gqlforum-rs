@@ -15,6 +15,11 @@ serde_json = "1"
 sycamore = { version = "0.8.0-beta.7", features = ["suspense"] }
 reqwasm = "0.5"
 
+console_error_panic_hook = "0.1.7"
+console_log = "0.2.0"
+log = "0.4.14"
+
 [profile.release]
 lto = true
 opt-level = 's' 
+codegen-units = 1

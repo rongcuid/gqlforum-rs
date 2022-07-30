@@ -1,7 +1,8 @@
 use reqwasm::http::{Request, Response};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-pub struct Client {
+pub struct GraphQLClient {
     endpoint: String,
 }
 
@@ -14,7 +15,7 @@ struct GraphQLRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GraphQLRawResponse {
-    pub data: Option<serde_json::Value>,
+    pub data: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<GraphQLError>>,
 }
@@ -41,7 +42,7 @@ pub enum GraphQLPathNode {
     Index(usize),
 }
 
-impl Client {
+impl GraphQLClient {
     pub fn new(endpoint: &str) -> Self {
         Self {
             endpoint: endpoint.to_owned(),
