@@ -50,21 +50,26 @@ async fn TestAsync<G: Html>(cx: Scope<'_>) -> View<G> {
     }
 }
 
+#[component]
+fn App<G: Html>(cx: Scope<'_>) -> View<G> {
+    let client = GraphQLClient::new("http://localhost:3000/graphql");
+    provide_context(cx, client);
+    view! { cx,
+        p { "Hello, World!" }
+        Suspense {
+            fallback: view! { cx, "Async..." },
+            TestAsync {}
+        }
+        Suspense {
+            fallback: view! { cx, "Loading..." },
+            TestGql {}
+        }
+    }
+}
+
 fn main() {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
     sycamore::render(|cx| {
-        let client = GraphQLClient::new("http://localhost:3000/graphql");
-        provide_context(cx, client);
-        view! { cx,
-            p { "Hello, World!" }
-            Suspense {
-                fallback: view! { cx, "Async..." },
-                TestAsync {}
-            }
-            Suspense {
-                fallback: view! { cx, "Loading..." },
-                TestGql {}
-            }
-        }
+        view! { cx, App {} }
     });
 }
