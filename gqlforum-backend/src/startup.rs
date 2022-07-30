@@ -2,6 +2,7 @@ use async_graphql::{EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
 
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+use tower_http::compression::CompressionLayer;
 
 use std::str::FromStr;
 
@@ -61,6 +62,7 @@ pub async fn run() {
         .fallback(handler_404.into_service())
         .layer(
             ServiceBuilder::new()
+                .layer(CompressionLayer::new().gzip(true).deflate(true).br(true))
                 .layer(CorsLayer::permissive())
                 .layer(Extension(pool))
                 .layer(Extension(schema))
