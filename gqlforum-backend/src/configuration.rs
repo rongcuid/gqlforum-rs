@@ -7,6 +7,7 @@ pub struct Settings {
     pub database: SQLite3Settings,
     pub listen: String,
     pub port: u16,
+    pub dist: String,
 }
 
 #[derive(Deserialize)]

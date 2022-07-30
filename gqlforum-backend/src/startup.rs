@@ -1,17 +1,19 @@
 use async_graphql::{EmptySubscription, Schema};
+use axum::routing::get_service;
 use axum::{handler::Handler, routing::get, Extension, Router};
 
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use tower_http::compression::CompressionLayer;
+use tower_http::services::ServeDir;
 
 use std::str::FromStr;
 
 use tower::builder::ServiceBuilder;
-use tower_http::cors::CorsLayer;
+
 use tracing::log::LevelFilter;
 
-use crate::backend::graphql::{MutationRoot, QueryRoot};
-use crate::backend::routes::{
+use super::graphql::{MutationRoot, QueryRoot};
+use super::routes::{
     fallback::handler_404,
     graphql::{graphql_handler, graphql_playground},
 };
@@ -55,22 +57,26 @@ pub async fn run() {
         .data(pool.clone())
         .finish();
 
-    // let props: ServerProps = Default::default();
     // build our application with a route
+    // let spa = SpaRouter::new("/", configuration.dist);
     let app = Router::new()
         .route("/graphql", get(graphql_playground).post(graphql_handler))
-        .fallback(handler_404.into_service())
-        .layer(
-            ServiceBuilder::new()
-                .layer(CompressionLayer::new().gzip(true).deflate(true).br(true))
-                .layer(CorsLayer::permissive())
-                .layer(Extension(pool))
-                .layer(Extension(schema))
-                .layer(Extension(SessionCookieName(
-                    configuration.session_cookie_name.clone(),
-                )))
-                .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+        .fallback(
+            get_service(ServeDir::new(configuration.dist))
+                .handle_error(|_| async move { handler_404().await }),
         );
+
+    let app = app.layer(
+        ServiceBuilder::new()
+            .layer(CompressionLayer::new().gzip(true).deflate(true).br(true))
+            // .layer(CorsLayer::permissive())
+            .layer(Extension(pool))
+            .layer(Extension(schema))
+            .layer(Extension(SessionCookieName(
+                configuration.session_cookie_name.clone(),
+            )))
+            .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+    );
 
     let app = setup_telemetry(app);
 

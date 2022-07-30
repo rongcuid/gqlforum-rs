@@ -1,6 +1,6 @@
 use sqlx::{query, sqlite::SqliteRow, Row, SqliteExecutor};
 
-use crate::backend::core::session::UserCredential;
+use crate::core::session::UserCredential;
 
 pub async fn query_board_topic_ids<'e, E: SqliteExecutor<'e>>(
     executor: E,

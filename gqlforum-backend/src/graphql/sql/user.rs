@@ -1,7 +1,7 @@
 use sqlx::{query, query_as, SqliteExecutor};
 
-use crate::backend::core::session::UserCredential;
-use crate::backend::graphql::{
+use crate::core::session::UserCredential;
+use crate::graphql::{
     session::Role,
     user::{User, UserBy},
 };

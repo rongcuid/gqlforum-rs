@@ -50,7 +50,7 @@ async fn TestAsync<G: Html>(cx: Scope<'_>) -> View<G> {
 
 #[component]
 fn App<G: Html>(cx: Scope<'_>) -> View<G> {
-    let client = GraphQLClient::new("http://localhost:3000/graphql");
+    let client = GraphQLClient::new("/graphql");
     provide_context(cx, client);
     view! { cx,
         p { "Hello, World!" }

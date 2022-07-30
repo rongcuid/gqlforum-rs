@@ -4,7 +4,7 @@ use nanoid::nanoid;
 use secrecy::Secret;
 use sqlx::SqlitePool;
 
-use crate::backend::core::{
+use crate::core::{
     authentication::validate_user_credentials,
     cookies::sign_cookie_unchecked,
     session::{delete_session, insert_session, SessionData, UserCredential},
