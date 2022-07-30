@@ -1,7 +1,5 @@
 pub mod graphql;
 
-use std::panic;
-
 use serde::{Deserialize, Serialize};
 use sycamore::{prelude::*, suspense::Suspense};
 
