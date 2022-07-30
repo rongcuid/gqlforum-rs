@@ -1,7 +1,10 @@
 use async_graphql::{EmptySubscription, Schema};
 use axum::{handler::Handler, routing::get, Extension, Router};
 
+use hyper::Method;
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+use tower::ServiceBuilder;
+use tower_http::cors::CorsLayer;
 
 use std::str::FromStr;
 use tracing::log::LevelFilter;
@@ -55,15 +58,16 @@ pub async fn run() {
     let app = Router::new()
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
-        .layer(Extension(pool))
-        .layer(Extension(schema))
-        .layer(Extension(SessionCookieName(
-            configuration.session_cookie_name.clone(),
-        )))
-        .layer(Extension(HmacSecret(configuration.hmac_secret.clone())));
-
-    // add a fallback service for handling routes to unknown paths
-    let app = app.fallback(handler_404.into_service());
+        .layer(
+            ServiceBuilder::new()
+                .layer(CorsLayer::permissive()) // TODO: make this safe
+                .layer(Extension(pool))
+                .layer(Extension(schema))
+                .layer(Extension(SessionCookieName(
+                    configuration.session_cookie_name.clone(),
+                )))
+                .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+        );
 
     let app = setup_telemetry(app);
 
