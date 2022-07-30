@@ -1,10 +1,8 @@
 use sqlx::{query_as, SqliteExecutor};
 use tracing::debug;
 
-use crate::{
-    core::session::UserCredential,
-    graphql::topic::{Topic, TopicMeta},
-};
+use crate::backend::core::session::UserCredential;
+use crate::backend::graphql::topic::{Topic, TopicMeta};
 
 pub async fn query_topic_by_id<'e, E: SqliteExecutor<'e>>(
     pool: E,

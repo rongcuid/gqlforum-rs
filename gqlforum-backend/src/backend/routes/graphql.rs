@@ -9,14 +9,12 @@ use sqlx::SqlitePool;
 
 // use sqlx::SqlitePool;
 
-use crate::{
-    core::{
-        cookies::verify_cookie_unchecked,
-        session::{try_get_verified_session_data, SessionCookie, UserCredential},
-    },
-    graphql::SchemaRoot,
-    startup::{HmacSecret, SessionCookieName},
+use crate::backend::core::{
+    cookies::verify_cookie_unchecked,
+    session::{try_get_verified_session_data, SessionCookie, UserCredential},
 };
+use crate::backend::graphql::SchemaRoot;
+use crate::startup::{HmacSecret, SessionCookieName};
 
 fn get_session_cookie<'a>(
     jar: &CookieJar,

@@ -4,16 +4,17 @@ use axum::{handler::Handler, routing::get, Extension, Router};
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 
 use std::str::FromStr;
+
+use tower::builder::ServiceBuilder;
+use tower_http::cors::CorsLayer;
 use tracing::log::LevelFilter;
 
-use crate::{
-    configuration::get_configuration,
-    graphql::{MutationRoot, QueryRoot},
-    routes::{
-        fallback::handler_404,
-        graphql::{graphql_handler, graphql_playground},
-    },
+use crate::backend::graphql::{MutationRoot, QueryRoot};
+use crate::backend::routes::{
+    fallback::handler_404,
+    graphql::{graphql_handler, graphql_playground},
 };
+use crate::configuration::get_configuration;
 
 use crate::telemetry::{init_telemetry, setup_telemetry};
 
@@ -25,8 +26,10 @@ pub struct SessionCookieName(pub String);
 
 pub async fn run() {
     init_telemetry();
-
     let configuration = get_configuration().expect("Failed to read configuration");
+    let addr = format!("{}:{}", configuration.listen, configuration.port)
+        .parse()
+        .unwrap();
 
     let mut options = SqliteConnectOptions::from_str(&configuration.database.connection)
         .expect("Failed to create SqlitePoolOptions")
@@ -51,26 +54,26 @@ pub async fn run() {
         .data(pool.clone())
         .finish();
 
+    // let props: ServerProps = Default::default();
     // build our application with a route
     let app = Router::new()
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(handler_404.into_service())
-        .layer(Extension(pool))
-        .layer(Extension(schema))
-        .layer(Extension(SessionCookieName(
-            configuration.session_cookie_name.clone(),
-        )))
-        .layer(Extension(HmacSecret(configuration.hmac_secret.clone())));
-
-    // add a fallback service for handling routes to unknown paths
-    let app = app.fallback(handler_404.into_service());
+        .layer(
+            ServiceBuilder::new()
+                .layer(CorsLayer::permissive())
+                .layer(Extension(pool))
+                .layer(Extension(schema))
+                .layer(Extension(SessionCookieName(
+                    configuration.session_cookie_name.clone(),
+                )))
+                .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+        );
 
     let app = setup_telemetry(app);
 
     // run it
-    let addr = format!("{}:{}", configuration.listen, configuration.port)
-        .parse()
-        .unwrap();
+
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

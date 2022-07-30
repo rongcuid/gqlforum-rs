@@ -4,14 +4,12 @@ use nanoid::nanoid;
 use secrecy::Secret;
 use sqlx::SqlitePool;
 
-use crate::{
-    core::{
-        authentication::validate_user_credentials,
-        cookies::sign_cookie_unchecked,
-        session::{delete_session, insert_session, SessionData, UserCredential},
-    },
-    startup::{HmacSecret, SessionCookieName},
+use crate::backend::core::{
+    authentication::validate_user_credentials,
+    cookies::sign_cookie_unchecked,
+    session::{delete_session, insert_session, SessionData, UserCredential},
 };
+use crate::startup::{HmacSecret, SessionCookieName};
 
 pub struct MutationRoot;
 

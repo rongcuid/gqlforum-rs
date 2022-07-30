@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 
 pub struct QueryRoot;
 
-use crate::core::session::UserCredential;
+use crate::backend::core::session::UserCredential;
 
 use super::{
     session::Session,
