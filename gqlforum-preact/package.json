@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.3.0",
+    "rollup-plugin-visualizer": "^5.7.1",
     "typescript": "^4.6.4",
     "vite": "^3.0.0"
   }
