@@ -14,8 +14,9 @@ struct User {
 
 #[component]
 async fn TestGql<G: Html>(cx: Scope<'_>) -> View<G> {
-    let resp = Client::new("http://localhost:3000/graphql")
-        .raw_query(
+    let client = Client::new("http://localhost:3000/graphql");
+    let resp1 = client
+        .query_raw(
             r#"
     query {
         user(by: {id: 1}) 
@@ -29,10 +30,13 @@ async fn TestGql<G: Html>(cx: Scope<'_>) -> View<G> {
         )
         .await
         .unwrap();
-    let user = resp.text().await.unwrap();
+    let resp2 = client.query_raw("{ asdfdasf }").await.unwrap();
     view! { cx,
         p {
-            "Response:" (user)
+            "Response: " (format!("{:?}",resp1))
+        }
+        p {
+            "Error: " (format!("{:?}", resp2))
         }
     }
 }

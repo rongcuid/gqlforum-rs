@@ -67,3 +67,5 @@ features = [
     "migrate",
     "offline",
 ]
+
+path = "../../sqlx"
