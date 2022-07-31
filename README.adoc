@@ -4,11 +4,20 @@ WARNING: DO NOT even think about using this in production!
 
 == TL;DR
 
+Summarize backend in one line?::
+Great performance without even trying, massive pain keeping SQL and code in sync, and huge trouble working around corners of API.
+
+Summarize frontend in one line?::
+Surprisingly pleasant to write, but documentation is scarce, and code size is large.
+
 How was the experience?::
 Extremely determined. Damn, full-stack is hard.
 
 Will I do this again?::
 No, not this stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth) + Axum (for business logic).
+
+How is the code quality?::
+Probably worth TheDailyWTF kind of quality.
 
 == Features
 
@@ -64,12 +73,15 @@ Frontend::
 
 === Anti-features
 
+* [x] Going back after a post crashes the frontend
 * [x] Horrendous UI design
 * [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
+* [x] Despite the backend has this API, you cannot see user profiles
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.
 * [x] Barely any defenses
+* [x] No checks what so ever in user input, but injection is guarded against
 * [x] Spaghetti code scattered around like crazy
 * [x] No documentation
 * [x] A test page that does no good except to verify my graphql implementation
@@ -112,6 +124,12 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 
 === The Bad
 
+General::
+* I have to keep the frontend/backend router in sync, manually.
+** For every route the SPA uses, I need the backend to serve the `index.html`
+* Cargo workspace does not work well with mixed targets
+
+Backend::
 * Really, we are manually doing monadic stack here by using `Context<'_'>`...
 * `async-graphql` doesn't work very well with Axum middleware
 ** Cannot use `CookieJar` because we cannot return extra arguments
@@ -119,13 +137,13 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 ** Repetition in binding middleware (in Axum and `async-graphql`)
 * `sqlx` generics are extremely hard to check, but I managed to use some anyways
 * `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process
-* I have to keep the frontend/backend router in sync, manually.
-** For every route the SPA uses, I need the backend to serve the `index.html`
+
+Frontend::
 * There aren't any Rust GraphQL clients that work under WASM, so I rolled an extremely simple one in a single file.
 * Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue
 * Took me an enormous amount of time to figure out how to do async in WASM
-* Cargo workspace does not work well with mixed targets
 * Sycamore doesn't have very good docs. e.g. how do I bind the username/password variables?
 * Sycamore macros don't work well with formatting
+* Sycamore's routing seems a bit limited
 * Cannot figure out how to set status code for Sycamore
 * [ ] Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project.

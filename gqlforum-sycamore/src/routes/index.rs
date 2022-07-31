@@ -1,8 +1,8 @@
-use serde_json::Value;
+use serde_json::{json, Value};
 use sycamore::prelude::*;
 use sycamore::suspense::Suspense;
+use sycamore_router::navigate;
 
-use crate::components::NewTopic;
 use crate::graphql::GraphQLClient;
 
 #[component]
@@ -119,6 +119,95 @@ async fn IndexPage<G: Html>(cx: Scope<'_>) -> View<G> {
         }
     } else {
         view! { cx, "Internal Server Error"}
+    }
+}
+
+struct NewTopicInput {
+    title: String,
+    body: String,
+}
+
+#[component]
+async fn NewTopicOutput<G: Html>(cx: Scope<'_>) -> View<G> {
+    let client = use_context::<GraphQLClient>(cx);
+    let input = use_context::<ReadSignal<NewTopicInput>>(cx);
+    let resp = client
+        .query_raw_with(
+            r#"
+        mutation($title: String, $body: String) {
+            newTopic(title: $title, body: $body) {
+                id
+            }
+        }
+        "#,
+            json!({
+                "title": input.get().title,
+                "body": input.get().body,
+            }),
+        )
+        .await
+        .unwrap();
+    let errors = create_signal(cx, Vec::new());
+    view! {cx, (
+        if let Some(errs) = &resp.errors {
+            errors.set(errs.iter().map(|x| x.message.clone()).collect());
+            view! { cx,
+                ul {
+                    Indexed {
+                        iterable: errors,
+                        view: |cx, x| view! { cx,
+                            li { (x) }
+                        }
+                    }
+                }
+            }
+        } else if let Some(data) = &resp.data {
+            let id = data.get("newTopic").unwrap().get("id").unwrap().as_i64().unwrap();
+            navigate(&format!("/topic/{}/1", id));
+            view! { cx, p {"Topic posted"}}
+        } else {
+            view! {cx, p {"Internal Server Error"}}
+        }
+    )}
+}
+
+#[component]
+fn NewTopic<G: Html>(cx: Scope<'_>) -> View<G> {
+    let submitted = create_signal(cx, false);
+    let title = create_signal(cx, String::new());
+    let body = create_signal(cx, String::new());
+    provide_context_ref(
+        cx,
+        create_memo(cx, || NewTopicInput {
+            title: (*title.get()).clone(),
+            body: (*body.get()).clone(),
+        }),
+    );
+    let new_topic = |_| {
+        submitted.set(true);
+    };
+
+    view! {
+        cx,
+        form {
+            div {
+                input(type="text", bind:value=title)
+            }
+            div {
+                textarea(type="text", bind:value=body)
+            }
+            div {
+                button(on:click=new_topic,type="button") { "New Topic" }
+            }
+            div {
+                (if *submitted.get() { view! { cx,
+                        Suspense {
+                            fallback: view! {cx, "Posting..."},
+                            NewTopicOutput { }
+                        }
+                    } } else { view! {cx, } })
+                }
+        }
     }
 }
 

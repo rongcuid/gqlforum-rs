@@ -7,8 +7,8 @@ use sycamore_router::{HistoryIntegration, Router};
 
 use crate::graphql::GraphQLClient;
 
-mod routes;
 mod components;
+mod routes;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct User {
@@ -32,7 +32,6 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
                             AppRoutes::Login => view! { cx, Login {}},
                             AppRoutes::Logout => view! { cx, Logout {}},
                             AppRoutes::Topic{ .. } => view! { cx, Topic {}},
-                            AppRoutes::User{ .. } => view! {cx, User {}},
                             AppRoutes::Test => view! { cx, TestApp {}},
                             AppRoutes::NotFound => view! { cx, "404 Not Found"}
                         })

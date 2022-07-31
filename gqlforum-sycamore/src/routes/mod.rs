@@ -26,8 +26,6 @@ pub enum AppRoutes {
     Logout,
     #[to("/topic/<id>/<page>")]
     Topic { id: i64, page: usize },
-    #[to("/user/<id>")]
-    User { id: i64 },
     #[to("/test")]
     Test,
     #[not_found]
