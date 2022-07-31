@@ -120,12 +120,12 @@ impl MutationRoot {
         }
     }
 
-    async fn new_post(&self, ctx: &Context<'_>, id: i64, body: String) -> Result<Post> {
+    async fn new_post(&self, ctx: &Context<'_>, topic_id: i64, body: String) -> Result<Post> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         if let Some(user_id) = cred.user_id() {
             let mut tx = pool.begin().await?;
-            let post_id = new_post(&mut tx, user_id, id, body).await?;
+            let post_id = new_post(&mut tx, user_id, topic_id, body).await?;
             let post = query_post_by_id(&mut tx, cred, post_id).await?.unwrap();
             tx.commit().await?;
             Ok(post)

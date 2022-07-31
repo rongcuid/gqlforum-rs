@@ -34,9 +34,9 @@ async fn LogoutOutput<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                 }
             }
         } else if let Some(data) = &resp.data {
-            if (|| {
-                Some(data.get("logout")? )
-            })() == Some(&Value::Bool(true)) {
+            if {
+                data.get("logout")
+            } == Some(&Value::Bool(true)) {
                 spawn_local_scoped(cx, async move {
                     TimeoutFuture::new(1000).await;
                     navigate("/");

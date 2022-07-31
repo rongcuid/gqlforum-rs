@@ -2,6 +2,8 @@
 
 WARNING: DO NOT even think about using this in production, lest your sanity be destroyed!
 
+Loosely following the awesome book _Zero to Production In Rust_, minus the vigorous test cases and battle tested framework.
+
 == TL;DR
 
 Summarize backend in one line?::
@@ -9,6 +11,9 @@ Great performance without even trying, massive pain keeping SQL and code in sync
 
 Summarize frontend in one line?::
 Surprisingly pleasant to write, but documentation is scarce, and code size is large.
+
+Comment the code quality?::
+It would be an excellent playground to practice exploits!
 
 How was the experience?::
 Extremely determined. Damn, full-stack is hard.
@@ -18,6 +23,27 @@ No, not this stack. If I want to build _anything_ for real, I would go for somet
 
 How is the code quality?::
 Probably worth TheDailyWTF kind of quality.
+
+== Building and running
+
+Make sure you have `trunk` installed.
+
+Go to `gqlforum-sycamore/`, then:
+
+....
+$ trunk build --release
+....
+
+Go to `gqlforum-backend/`, then:
+
+....
+$ cargo run --release
+....
+
+Go to http://localhost:3000 for the main page.
+Go to http://localhost:3000/graphql for GraphQL playground.
+
+Admin account is `admin`, password is `admin`.
 
 == Features
 
@@ -49,12 +75,12 @@ Frontend::
 
 * [x] Login page
 * [x] Logout link
-* [ ] List topics
-* [ ] Topic by id
-* [ ] Create topic
-* [ ] Create post
-* [ ] Delete topic
-* [ ] Delete post
+* [x] List topics
+* [x] Topic by id
+* [x] Create topic
+* [x] Create post
+* [ ] [.line-through]#Delete topic#
+* [ ] [.line-through]#Delete post#
 
 === Authentication
 
@@ -79,15 +105,18 @@ Frontend::
 * [x] Horrendous UI design
 * [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
 * [x] Despite the backend has this API, you cannot see user profiles
+* [x] Despite the backend has this API, you cannot delete posts or topics (I lost too much sanity trying to figure out everything at once)
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.
 * [x] Barely any defenses
 * [x] No checks what so ever in user input, but injection is guarded against
 * [x] Spaghetti code scattered around like crazy
-* [x] No documentation
+* [x] No documentation, no tests, no examples
+* [x] Monolith repo
 * [x] A test page that does no good except to verify my graphql implementation
 * [x] Stale sessions are not cleaned up regularly
+* [x] Random crashes if redirection goes too quickly
 
 == Design Choices
 

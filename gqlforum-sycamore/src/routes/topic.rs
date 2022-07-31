@@ -96,7 +96,7 @@ async fn TopicContent<G: Html>(cx: Scope<'_>, props: (i64, i64)) -> View<G> {
         .unwrap();
     let topic: &Signal<Option<Topic>> = create_signal(cx, None);
     let posts = create_memo(cx, || {
-        (*topic.get()).clone().map(|x| x.posts).unwrap_or(vec![])
+        (*topic.get()).clone().map(|x| x.posts).unwrap_or_default()
     });
     if let Some(data) = resp.data {
         topic.set(serde_json::from_value(data.get("topic").unwrap().clone()).unwrap());
@@ -116,7 +116,7 @@ async fn TopicContent<G: Html>(cx: Scope<'_>, props: (i64, i64)) -> View<G> {
                         p { ((||{
                             let body = post.content.as_ref()?.body.clone();
                             Some(body)
-                        })().unwrap_or("[DELETED]".to_owned())) 
+                        })().unwrap_or("[DELETED]".to_owned()))
                         }
                         p {
                             "-- by " em {(
@@ -135,12 +135,100 @@ async fn TopicContent<G: Html>(cx: Scope<'_>, props: (i64, i64)) -> View<G> {
     }
 }
 
+struct NewPostInput {
+    topic_id: i64,
+    body: String,
+}
+
+#[component]
+async fn NewPostOutput<G: Html>(cx: Scope<'_>) -> View<G> {
+    let client = use_context::<GraphQLClient>(cx);
+    let input = use_context::<ReadSignal<NewPostInput>>(cx);
+    let resp = client
+        .query_raw_with(
+            r#"
+        mutation($topicId: String, $body: String) {
+            newPost(topicId: $topicId, body: $body) {
+                id
+            }
+        }
+        "#,
+            json!({
+                "topicId": input.get().topic_id,
+                "body": input.get().body,
+            }),
+        )
+        .await
+        .unwrap();
+    let errors = create_signal(cx, Vec::new());
+    view! {cx, (
+        if let Some(errs) = &resp.errors {
+            errors.set(errs.iter().map(|x| x.message.clone()).collect());
+            view! { cx,
+                ul {
+                    Indexed {
+                        iterable: errors,
+                        view: |cx, x| view! { cx,
+                            li { (x) }
+                        }
+                    }
+                }
+            }
+        } else if let Some(_data) = &resp.data {
+            view! { cx, p {"Topic posted"}}
+        } else {
+            view! {cx, p {"Internal Server Error"}}
+        }
+    )}
+}
+
+struct TopicId(i64);
+
+#[component]
+fn NewPost<G: Html>(cx: Scope<'_>) -> View<G> {
+    let submitted = create_signal(cx, false);
+    let topic_id = use_context::<TopicId>(cx);
+    let body = create_signal(cx, String::new());
+    provide_context_ref(
+        cx,
+        create_memo(cx, || NewPostInput {
+            topic_id: topic_id.0,
+            body: (*body.get()).clone(),
+        }),
+    );
+    let new_topic = |_| {
+        submitted.set(true);
+    };
+
+    view! {
+        cx,
+        form {
+            div {
+                textarea(type="text", bind:value=body)
+            }
+            div {
+                button(on:click=new_topic,type="button") { "New Post" }
+            }
+            div {
+                (if *submitted.get() { view! { cx,
+                        Suspense {
+                            fallback: view! {cx, "Posting..."},
+                            NewPostOutput { }
+                        }
+                    } } else { view! {cx, } })
+                }
+        }
+    }
+}
+
 #[component]
 pub fn Topic<G: Html>(cx: Scope<'_>, props: (i64, i64)) -> View<G> {
+    provide_context(cx, TopicId(props.0));
     view! { cx,
         Suspense {
             fallback: view! { cx, "Loading..." },
             TopicContent(props)
         }
+        NewPost {}
     }
 }
