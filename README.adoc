@@ -2,6 +2,19 @@
 
 == Features
 
+=== The Stack
+
+Backend::
+* `async-graphql`
+* Axum
+* Tower
+* `sqlx`
+* SQLite
+
+Frontend::
+* Sycamore
+* WASM
+
 === Backend Functionality
 
 * [x] Serves a frontend with the same server

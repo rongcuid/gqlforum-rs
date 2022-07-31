@@ -1,6 +1,6 @@
 pub mod graphql;
 
-use routes::{AppRoutes, TestApp};
+use routes::*;
 use serde::{Deserialize, Serialize};
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Router};
@@ -27,12 +27,12 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
                 view! { cx,
                     div(class="app") {
                         (match route.get().as_ref() {
-                            AppRoutes::Index => view! { cx, "Stub index"},
-                            AppRoutes::Page {..} => view! { cx, "Stub page" },
-                            AppRoutes::Login => view! { cx, "Stub login"},
-                            AppRoutes::Logout => view! { cx, "Stub logout"},
-                            AppRoutes::Topic{ .. } => view! { cx, "Stub topic"},
-                            AppRoutes::User{ .. } => view! {cx, "Stub user"},
+                            AppRoutes::Index => view! { cx, Index {}},
+                            AppRoutes::Page {..} => view! { cx, Page {} },
+                            AppRoutes::Login => view! { cx, Login {}},
+                            AppRoutes::Logout => view! { cx, Logout {}},
+                            AppRoutes::Topic{ .. } => view! { cx, Topic {}},
+                            AppRoutes::User{ .. } => view! {cx, User {}},
                             AppRoutes::Test => view! { cx, TestApp {}},
                             AppRoutes::NotFound => view! { cx, "404 Not Found"}
                         })
