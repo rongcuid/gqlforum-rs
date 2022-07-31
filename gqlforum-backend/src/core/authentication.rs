@@ -1,9 +1,21 @@
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use argon2::{
+    password_hash::{rand_core::OsRng, SaltString},
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+};
+use async_graphql::Error;
 use secrecy::{ExposeSecret, Secret};
-use sqlx::{query_as, sqlite::SqliteRow, FromRow, Row, SqliteExecutor};
+use sqlx::{query, query_as, sqlite::SqliteRow, FromRow, Row, Sqlite, SqliteExecutor, Transaction};
 use tracing::instrument;
 
-use crate::telemetry::spawn_blocking_with_tracing;
+use crate::{
+    graphql::{
+        sql::query_user,
+        user::{User, UserBy},
+    },
+    telemetry::spawn_blocking_with_tracing,
+};
+
+use super::session::{delete_session, UserCredential};
 
 struct UserCredentials {
     id: i64,
@@ -48,4 +60,39 @@ fn verify_password_hash(credential: UserCredentials, password: Secret<String>) -
         .verify_password(password.expose_secret().as_bytes(), &hash)
         .ok()?;
     Some(credential.id)
+}
+
+pub async fn change_password(
+    tx: &mut Transaction<'_, Sqlite>,
+    cred: &UserCredential,
+    current_password: String,
+    new_password: String,
+) -> Result<User, async_graphql::Error> {
+    if let Some(session) = cred.session() {
+        let username = query("SELECT username FROM users WHERE id = ?")
+            .bind(session.user_id)
+            .map(|row: SqliteRow| row.get("username"))
+            .fetch_one(&mut *tx)
+            .await?;
+        let user_id = validate_user_credentials(&mut *tx, username, Secret::new(current_password)).await;
+        if user_id != cred.user_id() {
+            return Err(Error::new("user id does not match session!"));
+        }
+        // Delete the current session
+        delete_session(&mut *tx, session.user_id, Secret::new(session.secret.clone())).await?;
+        let salt = SaltString::generate(&mut OsRng);
+        let phc: String = Argon2::default()
+            .hash_password(new_password.as_bytes(), &salt)?
+            .to_string();
+        query("UPDATE users SET phc_string = ?2 WHERE id = ?1")
+            .bind(user_id)
+            .bind(phc)
+            .execute(&mut *tx)
+            .await?;
+        Ok(query_user(&mut *tx, cred, UserBy::Id(user_id.unwrap()))
+            .await?
+            .unwrap())
+    } else {
+        Err(Error::new("You must log in first"))
+    }
 }

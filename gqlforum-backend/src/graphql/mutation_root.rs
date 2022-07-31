@@ -9,7 +9,7 @@ use secrecy::Secret;
 use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
 
 use crate::core::{
-    authentication::validate_user_credentials,
+    authentication::{validate_user_credentials, change_password},
     cookies::sign_cookie_unchecked,
     session::{delete_session, insert_session, SessionData, UserCredential},
 };
@@ -93,41 +93,9 @@ impl MutationRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         let mut tx = pool.begin().await?;
-        let result = if let Some(session) = cred.session() {
-            let username = query("SELECT username FROM users WHERE id = ?")
-                .bind(session.user_id)
-                .map(|row: SqliteRow| row.get("username"))
-                .fetch_one(&mut tx)
-                .await?;
-            let user_id =
-                validate_user_credentials(&mut tx, username, Secret::new(current_password)).await;
-            if user_id != cred.user_id() {
-                return Err(Error::new("user id does not match session!"));
-            }
-            // Delete the current session
-            delete_session(
-                &mut tx,
-                session.user_id,
-                Secret::new(session.secret.clone()),
-            )
-            .await?;
-            let salt = SaltString::generate(&mut OsRng);
-            let phc: String = Argon2::default()
-                .hash_password(new_password.as_bytes(), &salt)?
-                .to_string();
-            query("UPDATE users SET phc_string = ?2 WHERE id = ?1")
-                .bind(user_id)
-                .bind(phc)
-                .execute(&mut tx)
-                .await?;
-            Ok(query_user(&mut tx, cred, UserBy::Id(user_id.unwrap()))
-                .await?
-                .unwrap())
-        } else {
-            Err(Error::new("You must log in first"))
-        };
+        let result = change_password(&mut tx, cred, current_password, new_password).await?;
         tx.commit().await?;
-        result
+        Ok(result)
     }
     async fn new_topic(&self, _ctx: &Context<'_>, _title: String, _body: String) -> Result<Topic> {
         Err(Error::new("Unimplemented"))
