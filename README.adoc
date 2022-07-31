@@ -2,6 +2,14 @@
 
 WARNING: DO NOT even think about using this in production!
 
+== TL;DR
+
+How was the experience?::
+Extremely determined. Damn, full-stack is hard.
+
+Will I do this again?::
+No, not this stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth) + Axum (for business logic).
+
 == Features
 
 === The Stack
@@ -57,6 +65,7 @@ Frontend::
 === Anti-features
 
 * [x] Horrendous UI design
+* [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.

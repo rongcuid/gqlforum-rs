@@ -29,7 +29,6 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
                     div(class="app") {
                         (match route.get().as_ref() {
                             AppRoutes::Index => view! { cx, Index {}},
-                            AppRoutes::Page {..} => view! { cx, Page {} },
                             AppRoutes::Login => view! { cx, Login {}},
                             AppRoutes::Logout => view! { cx, Logout {}},
                             AppRoutes::Topic{ .. } => view! { cx, Topic {}},

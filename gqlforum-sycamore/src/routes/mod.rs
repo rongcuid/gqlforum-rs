@@ -20,8 +20,6 @@ pub use user::*;
 pub enum AppRoutes {
     #[to("/")]
     Index,
-    #[to("/page/<page>")]
-    Page { page: usize },
     #[to("/login")]
     Login,
     #[to("/logout")]

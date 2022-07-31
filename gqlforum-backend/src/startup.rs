@@ -69,7 +69,6 @@ pub async fn run() {
     .handle_error(|_| async move { (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error") });
     // build our application with a route
     let app = Router::new()
-        .route("/page/:page", spa_service.clone())
         .route("/test", spa_service.clone())
         .route("/login", spa_service.clone())
         .route("/logout", spa_service.clone())
