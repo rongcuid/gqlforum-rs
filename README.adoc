@@ -1,5 +1,7 @@
 = GraphQL Forum
 
+WARNING: DO NOT even think about using this in production!
+
 == Features
 
 === The Stack
@@ -28,8 +30,8 @@ Frontend::
 
 == Frontend Functionality
 
-* [ ] Login page
-* [ ] Logout link
+* [x] Login page
+* [x] Logout link
 * [ ] List topics
 * [ ] Topic by id
 * [ ] Create topic
@@ -57,6 +59,7 @@ Frontend::
 * [x] Horrendous UI design
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
+* [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.
 * [x] Barely any defenses
 * [x] Spaghetti code scattered around like crazy
 * [x] No documentation
@@ -115,3 +118,5 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * Cargo workspace does not work well with mixed targets
 * Sycamore doesn't have very good docs. e.g. how do I bind the username/password variables?
 * Sycamore macros don't work well with formatting
+* Cannot figure out how to set status code for Sycamore
+* [ ] Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project.

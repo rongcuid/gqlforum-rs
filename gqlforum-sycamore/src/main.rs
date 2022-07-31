@@ -8,6 +8,7 @@ use sycamore_router::{HistoryIntegration, Router};
 use crate::graphql::GraphQLClient;
 
 mod routes;
+mod components;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct User {
