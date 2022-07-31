@@ -3,13 +3,13 @@ use argon2::{
     Argon2, PasswordHasher,
 };
 use async_graphql::*;
-use cookie::{Cookie, time::OffsetDateTime};
+use cookie::{time::OffsetDateTime, Cookie};
 use nanoid::nanoid;
 use secrecy::Secret;
 use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
 
 use crate::core::{
-    authentication::{validate_user_credentials, change_password},
+    authentication::{change_password, validate_user_credentials},
     cookies::sign_cookie_unchecked,
     session::{delete_session, insert_session, SessionData, UserCredential},
 };

@@ -74,12 +74,18 @@ pub async fn change_password(
             .map(|row: SqliteRow| row.get("username"))
             .fetch_one(&mut *tx)
             .await?;
-        let user_id = validate_user_credentials(&mut *tx, username, Secret::new(current_password)).await;
+        let user_id =
+            validate_user_credentials(&mut *tx, username, Secret::new(current_password)).await;
         if user_id != cred.user_id() {
             return Err(Error::new("user id does not match session!"));
         }
         // Delete the current session
-        delete_session(&mut *tx, session.user_id, Secret::new(session.secret.clone())).await?;
+        delete_session(
+            &mut *tx,
+            session.user_id,
+            Secret::new(session.secret.clone()),
+        )
+        .await?;
         let salt = SaltString::generate(&mut OsRng);
         let phc: String = Argon2::default()
             .hash_password(new_password.as_bytes(), &salt)?
