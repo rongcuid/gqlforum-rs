@@ -83,8 +83,6 @@ impl MutationRoot {
         new_password: String,
     ) -> Result<User> {
         let pool = ctx.data::<SqlitePool>().unwrap();
-        let _key = ctx.data::<HmacSecret>().unwrap();
-        let _session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         let mut tx = pool.begin().await?;
         let result = if let Some(session) = cred.session() {
@@ -120,7 +118,7 @@ impl MutationRoot {
         } else {
             Err(Error::new("You must log in first"))
         };
-        tx.commit().await;
+        tx.commit().await?;
         result
     }
     async fn new_topic(&self, _ctx: &Context<'_>, _title: String, _body: String) -> Result<Topic> {
