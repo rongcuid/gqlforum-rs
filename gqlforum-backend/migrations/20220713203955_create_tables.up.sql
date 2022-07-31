@@ -113,7 +113,6 @@ CREATE TABLE active_sessions(
     PRIMARY KEY(session_user_id, token_hash),
     FOREIGN KEY(session_user_id) REFERENCES users(id)
 );
-
 -- New post triggers topic update
 CREATE TRIGGER tr_posts_after_insert
 AFTER

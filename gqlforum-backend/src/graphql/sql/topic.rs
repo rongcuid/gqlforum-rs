@@ -4,6 +4,8 @@ use sqlx::{query, query_as, Row, Sqlite, SqliteExecutor, Transaction};
 use crate::core::session::UserCredential;
 use crate::graphql::topic::Topic;
 
+use super::new_post;
+
 pub async fn query_topic_by_id<'e, E: SqliteExecutor<'e>>(
     pool: E,
     cred: &UserCredential,
@@ -34,14 +36,6 @@ pub async fn new_topic(
     .map(|row: SqliteRow| row.get("id"))
     .fetch_one(&mut *tx)
     .await?;
-    query(
-        r"INSERT INTO posts (topic_id, author_user_id, body)
-    VALUES (?3, ?1, ?2)",
-    )
-    .bind(user_id)
-    .bind(body)
-    .bind(topic_id)
-    .execute(&mut *tx)
-    .await?;
+    new_post(&mut *tx, user_id, topic_id, body).await?;
     Ok(topic_id)
 }

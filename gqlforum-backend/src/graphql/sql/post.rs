@@ -1,4 +1,4 @@
-use sqlx::{query_as, SqliteExecutor};
+use sqlx::{query, query_as, sqlite::SqliteRow, Row, Sqlite, SqliteExecutor, Transaction};
 
 use crate::{core::session::UserCredential, graphql::post::Post};
 
@@ -30,4 +30,22 @@ pub async fn query_post_by_id<'e, E: SqliteExecutor<'e>>(
         .fetch_optional(pool)
         .await?;
     Ok(topic)
+}
+
+pub async fn new_post(
+    tx: &mut Transaction<'_, Sqlite>,
+    user_id: i64,
+    topic_id: i64,
+    body: String,
+) -> Result<i64, sqlx::Error> {
+    query(
+        r"INSERT INTO posts (topic_id, author_user_id, body)
+        VALUES (?3, ?1, ?2) RETURNING id",
+    )
+    .bind(user_id)
+    .bind(body)
+    .bind(topic_id)
+    .map(|row: SqliteRow| row.get("id"))
+    .fetch_one(&mut *tx)
+    .await
 }

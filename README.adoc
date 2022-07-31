@@ -46,3 +46,22 @@ Access control comes in form of 4 views: `topic_permissions`, `topic_public`, `p
 * Post metadata is always accessible, but contents can only be viewed as permitted.
 
 These invariants are enforced by the SQL query used to access posts.
+
+== Experience Report
+
+WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
+
+=== The Good
+
+* Great performance without even trying
+* `async-graphql` object definition is relatively easy to use... once I got the basics
+
+=== The Bad
+
+* Really, we are manually doing monadic stack here by using `Context<'_'>`...
+* `async-graphql` doesn't work very well with Axum middleware
+** Cannot use `CookieJar` because we cannot return extra arguments
+*** Ended up rolling my own implementation to sign cookies
+** Repetition in binding middleware (in Axum and `async-graphql`)
+* `sqlx` generics are extremely hard to check, but I managed to use some anyways
+* `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process

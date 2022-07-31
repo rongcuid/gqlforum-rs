@@ -17,7 +17,7 @@ use crate::startup::{HmacSecret, SessionCookieName};
 
 use super::{
     post::Post,
-    sql::{new_topic, query_topic_by_id, query_user},
+    sql::{new_topic, query_topic_by_id, query_user, new_post, query_post_by_id},
     topic::Topic,
     user::{User, UserBy},
 };
@@ -104,13 +104,18 @@ impl MutationRoot {
             Err(Error::new("Must be logged in to post."))
         }
     }
-    async fn edit_topic(&self, _ctx: &Context<'_>, _id: i64, _title: String) -> Result<Topic> {
-        Err(Error::new("Unimplemented"))
-    }
-    async fn new_post(&self, _ctx: &Context<'_>, _topic_id: i64, _body: String) -> Result<Post> {
-        Err(Error::new("Unimplemented"))
-    }
-    async fn edit_post(&self, _ctx: &Context<'_>, _id: i64, _body: String) -> Result<Post> {
-        Err(Error::new("Unimplemented"))
-    }
+
+    async fn new_post(&self, ctx: &Context<'_>, topic_id: i64, body: String) -> Result<Post> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        if let Some(user_id) = cred.user_id() {
+            let mut tx = pool.begin().await?;
+            let post_id = new_post(&mut tx, user_id, topic_id, body).await?;
+            let post = query_post_by_id(&mut tx, cred, post_id).await?.unwrap();
+            tx.commit().await?;
+            Ok(post)
+        } else {
+            Err(Error::new("Must be logged in to post."))
+        }
+        }
 }
