@@ -54,6 +54,7 @@ Frontend::
 
 === Anti-features
 
+* [x] Horrendous UI design
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Barely any defenses

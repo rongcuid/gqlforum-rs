@@ -24,20 +24,24 @@ pub fn Login<G: Html>(cx: Scope<'_>) -> View<G> {
         submitted.set(true);
     };
     view! { cx,
+        form {
         div {
-            form {
             label { "Username: " }
             input(type="text", placeholder="Enter Username", name="username", bind:value=username) {}
+        }
+        div {
             label { "Password: " }
             input(type="password", placeholder="Enter Password", name="password",bind:value=password) {}
+        }
+        div {
             button(on:click=login,type="button") { "Login" }
             (if *submitted.get() { view! { cx,
-                Suspense { 
+                Suspense {
                     fallback: view! {cx, "Logging in..."},
                     LoginOutput {}
                 }
             } } else { view! {cx, } })
         }
-    }
+        }
     }
 }
