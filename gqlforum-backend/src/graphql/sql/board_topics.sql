@@ -25,6 +25,7 @@ ORDER BY
     CASE
         WHEN t.updated_at IS NULL THEN t.created_at
         ELSE updated_at
-    END DESC
+    END DESC,
+    t.id DESC
 LIMIT
     ?2 OFFSET ?3
