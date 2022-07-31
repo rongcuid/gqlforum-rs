@@ -2,8 +2,8 @@ pub mod graphql;
 
 use routes::{AppRoutes, TestApp};
 use serde::{Deserialize, Serialize};
-use sycamore::{prelude::*, suspense::Suspense};
-use sycamore_router::{HistoryIntegration, Route, Router, RouterProps};
+use sycamore::prelude::*;
+use sycamore_router::{HistoryIntegration, Router};
 
 use crate::graphql::GraphQLClient;
 
@@ -28,6 +28,7 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
                     div(class="app") {
                         (match route.get().as_ref() {
                             AppRoutes::Index => view! { cx, "Stub index"},
+                            AppRoutes::Page {..} => view! { cx, "Stub page" },
                             AppRoutes::Login => view! { cx, "Stub login"},
                             AppRoutes::Logout => view! { cx, "Stub logout"},
                             AppRoutes::Topic{ .. } => view! { cx, "Stub topic"},

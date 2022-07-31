@@ -60,11 +60,16 @@ pub async fn run() {
         .finish();
 
     let index = configuration.dist.clone() + "/index.html";
-    let spa_service = get_service(ServeFile::new(index).precompressed_gzip().precompressed_br().precompressed_deflate()).handle_error(|_| async move {
-        (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
-    });
+    let spa_service = get_service(
+        ServeFile::new(index)
+            .precompressed_gzip()
+            .precompressed_br()
+            .precompressed_deflate(),
+    )
+    .handle_error(|_| async move { (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error") });
     // build our application with a route
     let app = Router::new()
+        .route("/page/:page", spa_service.clone())
         .route("/test", spa_service.clone())
         .route("/login", spa_service.clone())
         .route("/logout", spa_service.clone())
