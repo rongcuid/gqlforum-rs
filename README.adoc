@@ -61,6 +61,7 @@ Frontend::
 * [x] Spaghetti code scattered around like crazy
 * [x] No documentation
 * [x] A test page that does no good except to verify my graphql implementation
+* [x] Stale sessions are not cleaned up regularly
 
 == Design Choices
 
@@ -113,3 +114,4 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * Took me an enormous amount of time to figure out how to do async in WASM
 * Cargo workspace does not work well with mixed targets
 * Sycamore doesn't have very good docs. e.g. how do I bind the username/password variables?
+* Sycamore macros don't work well with formatting

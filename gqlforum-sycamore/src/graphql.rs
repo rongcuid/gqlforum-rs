@@ -10,7 +10,7 @@ pub struct GraphQLClient {
 struct GraphQLRequest {
     query: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    variable: Option<String>,
+    variables: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,7 +53,22 @@ impl GraphQLClient {
     pub async fn query_http(&self, query: &str) -> Result<Response, reqwasm::Error> {
         let request = GraphQLRequest {
             query: Self::minimize_query_string(query),
-            variable: None,
+            variables: None,
+        };
+        Request::post(&self.endpoint)
+            .body(serde_json::to_string(&request).unwrap())
+            .send()
+            .await
+    }
+
+    pub async fn query_http_with(
+        &self,
+        query: &str,
+        variables: Value,
+    ) -> Result<Response, reqwasm::Error> {
+        let request = GraphQLRequest {
+            query: Self::minimize_query_string(query),
+            variables: Some(variables),
         };
         Request::post(&self.endpoint)
             .body(serde_json::to_string(&request).unwrap())
@@ -65,6 +80,19 @@ impl GraphQLClient {
     pub async fn query_raw(&self, query: &str) -> Result<GraphQLRawResponse, reqwasm::Error> {
         let response = self
             .query_http(query)
+            .await?
+            .json::<GraphQLRawResponse>()
+            .await
+            .unwrap();
+        Ok(response)
+    }
+    pub async fn query_raw_with(
+        &self,
+        query: &str,
+        variables: Value,
+    ) -> Result<GraphQLRawResponse, reqwasm::Error> {
+        let response = self
+            .query_http_with(query, variables)
             .await?
             .json::<GraphQLRawResponse>()
             .await
