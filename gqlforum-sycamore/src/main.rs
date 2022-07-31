@@ -31,7 +31,7 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
                             AppRoutes::Index => view! { cx, Index {}},
                             AppRoutes::Login => view! { cx, Login {}},
                             AppRoutes::Logout => view! { cx, Logout {}},
-                            AppRoutes::Topic{ .. } => view! { cx, Topic {}},
+                            AppRoutes::Topic{ id, page } => view! { cx, Topic((*id, *page as i64))},
                             AppRoutes::Test => view! { cx, TestApp {}},
                             AppRoutes::NotFound => view! { cx, "404 Not Found"}
                         })

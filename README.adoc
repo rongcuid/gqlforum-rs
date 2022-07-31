@@ -1,6 +1,6 @@
 = GraphQL Forum
 
-WARNING: DO NOT even think about using this in production!
+WARNING: DO NOT even think about using this in production, lest your sanity be destroyed!
 
 == TL;DR
 
@@ -73,6 +73,8 @@ Frontend::
 
 === Anti-features
 
+* [x] No HTTPS. Therefore, **credentials are sent in clear text**
+** Admittedly, this is easy to fix.
 * [x] Going back after a post crashes the frontend
 * [x] Horrendous UI design
 * [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
