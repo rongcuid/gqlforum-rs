@@ -1,5 +1,6 @@
-use serde_json::json;
+use serde_json::{json, Value};
 use sycamore::{prelude::*, suspense::Suspense};
+use sycamore_router::navigate;
 
 use crate::graphql::GraphQLClient;
 
@@ -25,7 +26,32 @@ async fn LoginOutput<'a, G: Html>(cx: Scope<'a>) -> View<G> {
         )
         .await
         .unwrap();
-    view! {cx, (format!("{:?}", resp))}
+    let errors = create_signal(cx, Vec::new());
+    view! {cx, (
+        if let Some(errs) = &resp.errors {
+            errors.set(errs.iter().map(|x| x.message.clone()).collect());
+            view! { cx,
+                ul {
+                    Indexed {
+                        iterable: errors,
+                        view: |cx, x| view! { cx,
+                            li { (x) }
+                        }
+                    }
+                }
+            }
+        } else if let Some(data) = &resp.data {
+            if (|| {
+                Some(data.get("login")? )
+            })() == Some(&Value::Bool(true)) {
+                view! {cx, p {"Logged in!"} }
+            } else {
+                view! {cx, p {"Authentication error!"}}
+            }
+        } else {
+            view! {cx, p {"Internal Server Error"}}
+        }
+    )}
 }
 
 #[component]
@@ -55,7 +81,7 @@ pub fn Login<G: Html>(cx: Scope<'_>) -> View<G> {
             (if *submitted.get() { view! { cx,
                     Suspense {
                         fallback: view! {cx, "Logging in..."},
-                        LoginOutput {}
+                        LoginOutput { }
                     }
                 } } else { view! {cx, } })
             }
