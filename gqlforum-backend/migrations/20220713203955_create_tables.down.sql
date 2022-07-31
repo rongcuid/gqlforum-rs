@@ -1,3 +1,4 @@
+DROP TRIGGER tr_posts_after_insert;
 DROP TRIGGER tr_users_after_update;
 DROP TRIGGER tr_topics_after_update;
 DROP TRIGGER tr_posts_after_update;
