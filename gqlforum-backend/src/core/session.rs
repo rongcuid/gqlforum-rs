@@ -1,5 +1,5 @@
 use async_graphql::Context;
-use cookie::{Cookie, time::OffsetDateTime};
+use cookie::{time::OffsetDateTime, Cookie};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -119,17 +119,17 @@ pub async fn invalidate_session<'e, E: SqliteExecutor<'e>>(
     cred: &UserCredential,
 ) -> Result<(), async_graphql::Error> {
     if let Some(session) = cred.session() {
-    let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
-    // Remove the cookie
-    let cookie = Cookie::build(session_cookie_name.0.clone(), "")
-        .http_only(true)
-        .secure(true)
-        .same_site(cookie::SameSite::Strict)
-        .expires(OffsetDateTime::now_utc())
-        .finish();
-    ctx.append_http_header("Set-Cookie", cookie.to_string());
-    delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
-    Ok(())
+        let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
+        // Remove the cookie
+        let cookie = Cookie::build(session_cookie_name.0.clone(), "")
+            .http_only(true)
+            .secure(true)
+            .same_site(cookie::SameSite::Strict)
+            .expires(OffsetDateTime::now_utc())
+            .finish();
+        ctx.append_http_header("Set-Cookie", cookie.to_string());
+        delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
+        Ok(())
     } else {
         Err(async_graphql::Error::new("Already logged out"))
     }

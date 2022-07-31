@@ -9,7 +9,7 @@ use secrecy::Secret;
 use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
 
 use crate::core::{
-    authentication::{change_password, validate_user_credentials, register},
+    authentication::{change_password, register, validate_user_credentials},
     cookies::sign_cookie_unchecked,
     session::{delete_session, insert_session, invalidate_session, SessionData, UserCredential},
 };
@@ -17,7 +17,7 @@ use crate::startup::{HmacSecret, SessionCookieName};
 
 use super::{
     post::Post,
-    sql::query_user,
+    sql::{new_topic, query_topic_by_id, query_user},
     topic::Topic,
     user::{User, UserBy},
 };
@@ -91,8 +91,18 @@ impl MutationRoot {
         tx.commit().await?;
         Ok(result)
     }
-    async fn new_topic(&self, _ctx: &Context<'_>, _title: String, _body: String) -> Result<Topic> {
-        Err(Error::new("Unimplemented"))
+    async fn new_topic(&self, ctx: &Context<'_>, title: String, body: String) -> Result<Topic> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        if let Some(user_id) = cred.user_id() {
+            let mut tx = pool.begin().await?;
+            let topic_id = new_topic(&mut tx, user_id, title, body).await?;
+            let topic = query_topic_by_id(&mut tx, cred, topic_id).await?.unwrap();
+            tx.commit().await?;
+            Ok(topic)
+        } else {
+            Err(Error::new("Must be logged in to post."))
+        }
     }
     async fn edit_topic(&self, _ctx: &Context<'_>, _id: i64, _title: String) -> Result<Topic> {
         Err(Error::new("Unimplemented"))
