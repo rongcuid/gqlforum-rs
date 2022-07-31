@@ -2,8 +2,23 @@ pub mod graphql;
 
 use serde::{Deserialize, Serialize};
 use sycamore::{prelude::*, suspense::Suspense};
+use sycamore_router::{HistoryIntegration, Route, Router, RouterProps};
 
 use crate::graphql::GraphQLClient;
+
+#[derive(Route)]
+enum AppRoutes {
+    #[to("/")]
+    Index,
+    #[to("/topic/<id>/<page>")]
+    Topic { id: i64, page: usize },
+    #[to("/user/<id>")]
+    User { id: i64 },
+    #[to("/test")]
+    Test,
+    #[not_found]
+    NotFound,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct User {
@@ -49,9 +64,7 @@ async fn TestAsync<G: Html>(cx: Scope<'_>) -> View<G> {
 }
 
 #[component]
-fn App<G: Html>(cx: Scope<'_>) -> View<G> {
-    let client = GraphQLClient::new("/graphql");
-    provide_context(cx, client);
+fn TestApp<G: Html>(cx: Scope<'_>) -> View<G> {
     view! { cx,
         p { "Hello, World!" }
         Suspense {
@@ -61,6 +74,30 @@ fn App<G: Html>(cx: Scope<'_>) -> View<G> {
         Suspense {
             fallback: view! { cx, "Loading..." },
             TestGql {}
+        }
+    }
+}
+
+#[component]
+fn App<G: Html>(cx: Scope<'_>) -> View<G> {
+    let client = GraphQLClient::new("/graphql");
+    provide_context(cx, client);
+    view! { cx,
+        Router {
+            integration: HistoryIntegration::new(),
+            view: |cx, route: &ReadSignal<AppRoutes>| {
+                view! { cx,
+                    div(class="app") {
+                        (match route.get().as_ref() {
+                            AppRoutes::Index => view! { cx, "Stub index"},
+                            AppRoutes::Topic{ .. } => view! { cx, "Stub topic"},
+                            AppRoutes::User{ .. } => view! {cx, "Stub user"},
+                            AppRoutes::Test => view! { cx, TestApp {}},
+                            AppRoutes::NotFound => view! { cx, "404 Not Found"}
+                        })
+                    }
+                }
+            }
         }
     }
 }

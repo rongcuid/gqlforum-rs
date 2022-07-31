@@ -2,9 +2,10 @@ use async_graphql::{EmptySubscription, Schema};
 use axum::routing::get_service;
 use axum::{routing::get, Extension, Router};
 
+use hyper::StatusCode;
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use tower_http::compression::CompressionLayer;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 use std::str::FromStr;
 
@@ -58,8 +59,15 @@ pub async fn run() {
         .data(pool.clone())
         .finish();
 
+    let index = configuration.dist.clone() + "/index.html";
+    let spa_service = get_service(ServeFile::new(index)).handle_error(|_| async move {
+        (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
+    });
     // build our application with a route
     let app = Router::new()
+        .route("/test", spa_service.clone())
+        .route("/topic/:id/:page", spa_service.clone())
+        .route("/user/:id", spa_service.clone())
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(
             get_service(ServeDir::new(configuration.dist))

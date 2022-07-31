@@ -76,3 +76,5 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 ** Repetition in binding middleware (in Axum and `async-graphql`)
 * `sqlx` generics are extremely hard to check, but I managed to use some anyways
 * `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process
+* I have to keep the frontend/backend router in sync, manually.
+** For every route the SPA uses, I need the backend to serve the `index.html`
