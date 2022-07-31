@@ -17,7 +17,7 @@ use crate::startup::{HmacSecret, SessionCookieName};
 
 use super::{
     post::Post,
-    sql::{new_topic, query_topic_by_id, query_user, new_post, query_post_by_id},
+    sql::{new_post, new_topic, query_post_by_id, query_topic_by_id, query_user},
     topic::Topic,
     user::{User, UserBy},
 };
@@ -117,5 +117,5 @@ impl MutationRoot {
         } else {
             Err(Error::new("Must be logged in to post."))
         }
-        }
+    }
 }
