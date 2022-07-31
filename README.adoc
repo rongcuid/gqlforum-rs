@@ -149,4 +149,4 @@ Frontend::
 * Sycamore's routing seems a bit limited
 * Cannot figure out how to set status code for Sycamore
 * Fight the borrow checker!
-* [ ] Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project.
+* Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project, and the size is still 314kB/126kB(gzipped).
