@@ -1,8 +1,12 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, SaltString},
+    Argon2, PasswordHasher,
+};
 use async_graphql::*;
 use cookie::Cookie;
 use nanoid::nanoid;
 use secrecy::Secret;
-use sqlx::SqlitePool;
+use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
 
 use crate::core::{
     authentication::validate_user_credentials,
@@ -11,7 +15,12 @@ use crate::core::{
 };
 use crate::startup::{HmacSecret, SessionCookieName};
 
-use super::{topic::Topic, post::Post};
+use super::{
+    post::Post,
+    sql::query_user,
+    topic::Topic,
+    user::{User, UserBy},
+};
 
 pub struct MutationRoot;
 
@@ -59,10 +68,71 @@ impl MutationRoot {
             Err(Error::new("Already logged out"))
         }
     }
-    async fn new_topic(&self, ctx: &Context<'_>, title: String, body: String) -> Result<Topic> {
+    async fn register(
+        &self,
+        _ctx: &Context<'_>,
+        _username: String,
+        _password: String,
+    ) -> Result<User> {
         Err(Error::new("Unimplemented"))
     }
-    async fn new_post(&self, ctx: &Context<'_>, topic_id: i64, body: String) -> Result<Post> {
+    async fn change_password(
+        &self,
+        ctx: &Context<'_>,
+        current_password: String,
+        new_password: String,
+    ) -> Result<User> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let _key = ctx.data::<HmacSecret>().unwrap();
+        let _session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        let mut tx = pool.begin().await?;
+        let result = if let Some(session) = cred.session() {
+            let username = query("SELECT username FROM users WHERE id = ?")
+                .bind(session.user_id)
+                .map(|row: SqliteRow| row.get("username"))
+                .fetch_one(&mut tx)
+                .await?;
+            let user_id =
+                validate_user_credentials(&mut tx, username, Secret::new(current_password)).await;
+            if user_id != cred.user_id() {
+                return Err(Error::new("user id does not match session!"));
+            }
+            // Delete the current session
+            delete_session(
+                &mut tx,
+                session.user_id,
+                Secret::new(session.secret.clone()),
+            )
+            .await?;
+            let salt = SaltString::generate(&mut OsRng);
+            let phc: String = Argon2::default()
+                .hash_password(new_password.as_bytes(), &salt)?
+                .to_string();
+            query("UPDATE users SET phc_string = ?2 WHERE id = ?1")
+                .bind(user_id)
+                .bind(phc)
+                .execute(&mut tx)
+                .await?;
+            Ok(query_user(&mut tx, cred, UserBy::Id(user_id.unwrap()))
+                .await?
+                .unwrap())
+        } else {
+            Err(Error::new("You must log in first"))
+        };
+        tx.commit().await;
+        result
+    }
+    async fn new_topic(&self, _ctx: &Context<'_>, _title: String, _body: String) -> Result<Topic> {
+        Err(Error::new("Unimplemented"))
+    }
+    async fn edit_topic(&self, _ctx: &Context<'_>, _id: i64, _title: String) -> Result<Topic> {
+        Err(Error::new("Unimplemented"))
+    }
+    async fn new_post(&self, _ctx: &Context<'_>, _topic_id: i64, _body: String) -> Result<Post> {
+        Err(Error::new("Unimplemented"))
+    }
+    async fn edit_post(&self, _ctx: &Context<'_>, _id: i64, _body: String) -> Result<Post> {
         Err(Error::new("Unimplemented"))
     }
 }

@@ -1,6 +1,6 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use secrecy::{ExposeSecret, Secret};
-use sqlx::{query_as, sqlite::SqliteRow, FromRow, Row, SqlitePool};
+use sqlx::{query_as, sqlite::SqliteRow, FromRow, Row, SqliteExecutor};
 use tracing::instrument;
 
 use crate::telemetry::spawn_blocking_with_tracing;
@@ -19,8 +19,8 @@ impl<'r> FromRow<'r, SqliteRow> for UserCredentials {
     }
 }
 
-pub async fn validate_user_credentials(
-    pool: &SqlitePool,
+pub async fn validate_user_credentials<'e, E: SqliteExecutor<'e>>(
+    pool: E,
     username: String,
     password: Secret<String>,
 ) -> Option<i64> {
@@ -30,8 +30,8 @@ pub async fn validate_user_credentials(
         .ok()?
 }
 
-async fn fetch_user_credentials(
-    pool: &SqlitePool,
+async fn fetch_user_credentials<'e, E: SqliteExecutor<'e>>(
+    pool: E,
     username: String,
 ) -> Result<Option<UserCredentials>, sqlx::Error> {
     let cred = query_as("SELECT id, phc_string FROM users WHERE username = ?1")

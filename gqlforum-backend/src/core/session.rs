@@ -2,7 +2,7 @@ use cookie::Cookie;
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sqlx::{query, SqlitePool};
+use sqlx::{query, SqliteExecutor, SqlitePool};
 use tracing::debug;
 
 #[derive(Clone, Debug)]
@@ -56,7 +56,7 @@ pub async fn try_get_verified_session_data<'a>(
     }
 }
 
-async fn verify_session(pool: &SqlitePool, session: &SessionData) -> bool {
+async fn verify_session<'e, E: SqliteExecutor<'e>>(pool: E, session: &SessionData) -> bool {
     let token_hash = &Sha256::digest(session.secret.as_bytes())[..];
     query(
         r#"
@@ -74,7 +74,10 @@ async fn verify_session(pool: &SqlitePool, session: &SessionData) -> bool {
     .is_some()
 }
 
-pub async fn insert_session(pool: &SqlitePool, session: SessionData) -> Result<(), sqlx::Error> {
+pub async fn insert_session<'e, E: SqliteExecutor<'e>>(
+    pool: E,
+    session: SessionData,
+) -> Result<(), sqlx::Error> {
     debug!("NEW SESSION: {:?}", session.secret);
     let hash = &Sha256::digest(session.secret.as_bytes())[..];
     query(
@@ -90,8 +93,8 @@ pub async fn insert_session(pool: &SqlitePool, session: SessionData) -> Result<(
     Ok(())
 }
 
-pub async fn delete_session(
-    pool: &SqlitePool,
+pub async fn delete_session<'e, E: SqliteExecutor<'e>>(
+    pool: E,
     user_id: i64,
     secret: Secret<String>,
 ) -> Result<(), sqlx::Error> {

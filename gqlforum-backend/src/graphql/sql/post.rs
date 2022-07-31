@@ -1,6 +1,6 @@
 use sqlx::{query_as, SqliteExecutor};
 
-use crate::{graphql::post::Post, core::session::UserCredential};
+use crate::{core::session::UserCredential, graphql::post::Post};
 
 pub async fn query_posts_by_topic_id<'e, E: SqliteExecutor<'e>>(
     pool: E,

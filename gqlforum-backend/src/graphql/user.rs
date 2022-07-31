@@ -4,9 +4,12 @@ use sqlx::{prelude::*, sqlite::SqliteRow, SqlitePool};
 use crate::core::session::UserCredential;
 
 use super::{
+    post::Post,
     session::Role,
-    sql::{query_role, query_topic_by_id, query_user_topic_ids, query_user_post_ids, query_post_by_id},
-    topic::Topic, post::Post,
+    sql::{
+        query_post_by_id, query_role, query_topic_by_id, query_user_post_ids, query_user_topic_ids,
+    },
+    topic::Topic,
 };
 
 #[derive(Debug, OneofObject)]
