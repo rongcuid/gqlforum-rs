@@ -15,6 +15,8 @@
 
 == Frontend Functionality
 
+* [ ] Login page
+* [ ] Logout link
 * [ ] List topics
 * [ ] Topic by id
 * [ ] Create topic
@@ -74,8 +76,12 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 === The Good
 
 * Great performance without even trying
+** While I don't have much web experience, the backend feels exceptionally fast
+** With `--release`, that is
+* Axum comes with a great collection of middleware
 * `async-graphql` object definition is relatively easy to use... once I got the basics
 * The compiler is very good at catching mistakes, if I am actually using types properly
+* Trunk sets up WASM output nicely
 
 === The Bad
 
@@ -89,3 +95,5 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * I have to keep the frontend/backend router in sync, manually.
 ** For every route the SPA uses, I need the backend to serve the `index.html`
 * There aren't any Rust GraphQL clients that work under WASM, so I rolled an extremely simple one in a single file.
+* Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue
+* Took me an enormous amount of time to figure out how to do async in WASM
