@@ -1,17 +1,20 @@
 use async_graphql::{EmptySubscription, Schema};
-use axum::{handler::Handler, routing::get, Extension, Router};
+use axum::routing::get_service;
+use axum::{routing::get, Extension, Router};
 
+use hyper::StatusCode;
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use tower_http::compression::CompressionLayer;
+use tower_http::services::{ServeDir, ServeFile};
 
 use std::str::FromStr;
 
 use tower::builder::ServiceBuilder;
-use tower_http::cors::CorsLayer;
+
 use tracing::log::LevelFilter;
 
-use crate::backend::graphql::{MutationRoot, QueryRoot};
-use crate::backend::routes::{
+use super::graphql::{MutationRoot, QueryRoot};
+use super::routes::{
     fallback::handler_404,
     graphql::{graphql_handler, graphql_playground},
 };
@@ -49,28 +52,45 @@ pub async fn run() {
 
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .extension(async_graphql::extensions::Tracing)
+        .limit_complexity(1024)
         // .extension(async_graphql::extensions::ApolloTracing)
         .data(HmacSecret(configuration.hmac_secret.clone()))
         .data(SessionCookieName(configuration.session_cookie_name.clone()))
         .data(pool.clone())
         .finish();
 
-    // let props: ServerProps = Default::default();
+    let index = configuration.dist.clone() + "/index.html";
+    let spa_service = get_service(
+        ServeFile::new(index)
+            .precompressed_gzip()
+            .precompressed_br()
+            .precompressed_deflate(),
+    )
+    .handle_error(|_| async move { (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error") });
     // build our application with a route
     let app = Router::new()
+        .route("/test", spa_service.clone())
+        .route("/login", spa_service.clone())
+        .route("/logout", spa_service.clone())
+        .route("/topic/:id/:page", spa_service.clone())
+        .route("/user/:id", spa_service.clone())
         .route("/graphql", get(graphql_playground).post(graphql_handler))
-        .fallback(handler_404.into_service())
-        .layer(
-            ServiceBuilder::new()
-                .layer(CompressionLayer::new().gzip(true).deflate(true).br(true))
-                .layer(CorsLayer::permissive())
-                .layer(Extension(pool))
-                .layer(Extension(schema))
-                .layer(Extension(SessionCookieName(
-                    configuration.session_cookie_name.clone(),
-                )))
-                .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+        .fallback(
+            get_service(ServeDir::new(configuration.dist))
+                .handle_error(|_| async move { handler_404().await }),
         );
+
+    let app = app.layer(
+        ServiceBuilder::new()
+            .layer(CompressionLayer::new().gzip(true).deflate(true).br(true))
+            // .layer(CorsLayer::permissive())
+            .layer(Extension(pool))
+            .layer(Extension(schema))
+            .layer(Extension(SessionCookieName(
+                configuration.session_cookie_name.clone(),
+            )))
+            .layer(Extension(HmacSecret(configuration.hmac_secret.clone()))),
+    );
 
     let app = setup_telemetry(app);
 

@@ -3,5 +3,7 @@ port = 3000
 hmac_secret = "1234567890123456789012345678901234567890123456789012345678901234"
 session_cookie_name = "msccc_session"
 
+dist = "../gqlforum-sycamore/dist/"
+
 [database]
 connection = "sqlite:test.db"

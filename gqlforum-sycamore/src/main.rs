@@ -1,9 +1,14 @@
 pub mod graphql;
 
+use routes::*;
 use serde::{Deserialize, Serialize};
-use sycamore::{prelude::*, suspense::Suspense};
+use sycamore::prelude::*;
+use sycamore_router::{HistoryIntegration, Router};
 
 use crate::graphql::GraphQLClient;
+
+mod components;
+mod routes;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct User {
@@ -13,54 +18,26 @@ struct User {
 }
 
 #[component]
-async fn TestGql<G: Html>(cx: Scope<'_>) -> View<G> {
-    let client = use_context::<GraphQLClient>(cx);
-    let resp1 = client
-        .query_raw(
-            r#"
-    query {
-        user(by: {id: 1}) 
-        {
-            id 
-            name 
-            role 
-        } 
-    }
-    "#,
-        )
-        .await
-        .unwrap();
-    let resp2 = client.query_raw("{ asdfdasf }").await.unwrap();
-    view! { cx,
-        p {
-            "Response: " (format!("{:?}",resp1))
-        }
-        p {
-            "Error: " (format!("{:?}", resp2))
-        }
-    }
-}
-
-#[component]
-async fn TestAsync<G: Html>(cx: Scope<'_>) -> View<G> {
-    view! { cx,
-        p { "Hello from async!" }
-    }
-}
-
-#[component]
 fn App<G: Html>(cx: Scope<'_>) -> View<G> {
-    let client = GraphQLClient::new("http://localhost:3000/graphql");
+    let client = GraphQLClient::new("/graphql");
     provide_context(cx, client);
     view! { cx,
-        p { "Hello, World!" }
-        Suspense {
-            fallback: view! { cx, "Async..." },
-            TestAsync {}
-        }
-        Suspense {
-            fallback: view! { cx, "Loading..." },
-            TestGql {}
+        Router {
+            integration: HistoryIntegration::new(),
+            view: |cx, route: &ReadSignal<AppRoutes>| {
+                view! { cx,
+                    div(class="app") {
+                        (match route.get().as_ref() {
+                            AppRoutes::Index => view! { cx, Index {}},
+                            AppRoutes::Login => view! { cx, Login {}},
+                            AppRoutes::Logout => view! { cx, Logout {}},
+                            AppRoutes::Topic{ id, page } => view! { cx, Topic((*id, *page as i64))},
+                            AppRoutes::Test => view! { cx, TestApp {}},
+                            AppRoutes::NotFound => view! { cx, "404 Not Found"}
+                        })
+                    }
+                }
+            }
         }
     }
 }
