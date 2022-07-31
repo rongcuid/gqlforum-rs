@@ -1,16 +1,17 @@
 = GraphQL Forum
 
-WARNING: DO NOT even think about using this in production, lest your sanity be destroyed!
+IMPORTANT: DO NOT even think about using this in production, lest your sanity be destroyed and credentials lost!
 
 Loosely following the awesome book _Zero to Production In Rust_, minus the vigorous test cases and battle tested framework.
 
 == TL;DR
 
 Summarize backend in one line?::
-Great performance without even trying, massive pain keeping SQL and code in sync, and huge trouble working around corners of API.
+Good performance without even trying, massive pain keeping SQL and code in sync, and huge trouble working around corners of API.
 
 Summarize frontend in one line?::
-Surprisingly pleasant to write, but documentation is scarce, and code size is large.
+Surprisingly pleasant to write, but documentation is scarce, and code size is large. 
+WASM is probably not ready to be the "main site" yet.
 
 Comment the code quality?::
 It would be an excellent playground to practice exploits!
@@ -19,14 +20,14 @@ How was the experience?::
 Extremely determined. Damn, full-stack is hard.
 
 Will I do this again?::
-No, not this stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth). For additional backend services, I would still consider Rust Axum and tower stack to be good.
+No, not the full stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth). For other backend services that don't involve dealing with data store, I would still consider Rust Axum, tower stack, and `async-graphql` to be good.
 
 How is the code quality?::
-Probably worth TheDailyWTF kind of quality.
+TheDailyWTF kind of quality.
 
 == Building and running
 
-Make sure you have `trunk` installed.
+Make sure you have link:https://github.com/thedodd/trunk[trunk] installed.
 
 Go to `gqlforum-sycamore/`, then:
 
@@ -44,6 +45,8 @@ Go to http://localhost:3000 for the main page.
 Go to http://localhost:3000/graphql for GraphQL playground.
 
 Admin account is `admin`, password is `admin`.
+
+The configs in `configuration.toml` should be apparent.
 
 == Features
 
@@ -84,10 +87,11 @@ Frontend::
 
 === Authentication
 
-* [x] Sessions
-* [x] Password authentication
+* [x] Server side session management
+** [x] Signed secure cookie on client side, hashed secret on server side
+* [x] Password authentication with Argon2
 * [x] Login via username/password
-* [x] Registration
+* [x] Registration (GraphQL only)
 * [x] Change password
 
 === Authorization
@@ -101,11 +105,12 @@ Frontend::
 
 * [x] No HTTPS. Therefore, **credentials are sent in clear text**
 ** Admittedly, this is easy to fix.
-* [x] Going back after a post crashes the frontend
+* [x] Frontend crashes all the time. Try refreshing
 * [x] Horrendous UI design
 * [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
-* [x] Despite the backend has this API, you cannot see user profiles
-* [x] Despite the backend has this API, you cannot delete posts or topics (I lost too much sanity trying to figure out everything at once)
+* [x] Despite the backend has this API, you cannot see user profiles at frontend
+* [x] Despite the backend has this API, you cannot register at frontend
+* [x] Despite the backend has this API, you cannot delete posts or topics at frontend
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.
@@ -148,8 +153,10 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * Great performance without even trying
 ** While I don't have much web experience, the backend feels exceptionally fast
 ** With `--release`, that is
+** 12MB memory use? Yeah, pretty good.
 * Axum comes with a great collection of middleware
 * `async-graphql` object definition is relatively easy to use... once I got the basics
+** I will continue to use it if I need to write a service to _do something_ instead of to _retrieve something_. The latter is better done with existing solution, like Hasura
 * The compiler is very good at catching mistakes, if I am actually using types properly
 * Trunk sets up WASM output nicely
 
@@ -159,23 +166,36 @@ General::
 * I have to keep the frontend/backend router in sync, manually.
 ** For every route the SPA uses, I need the backend to serve the `index.html`
 * Cargo workspace does not work well with mixed targets
+* There are these... "Context" paradigm which does something like `get_context::<Type>()` which I don't like, because they destroy the point of having a statically type-checked language. And they are everywhere.
 
 Backend::
-* Really, we are manually doing monadic stack here by using `Context<'_'>`...
+* Really, we are manually doing monad stack here by using all those `Context<'_'>`, `Extension`, `Layer`, ... except without the nice `do` syntax Haskell provides
 * `async-graphql` doesn't work very well with Axum middleware
 ** Cannot use `CookieJar` because we cannot return extra arguments
 *** Ended up rolling my own implementation to sign cookies
 ** Repetition in binding middleware (in Axum and `async-graphql`)
-* `sqlx` generics are extremely hard to check, but I managed to use some anyways
+* `sqlx` generics are extremely hard to type check, but I managed to use some anyways
 * `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process
 
 Frontend::
-* There aren't any Rust GraphQL clients that work under WASM, so I rolled an extremely simple one in a single file.
-* Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue
+* There aren't any Rust GraphQL clients that work under WASM, so I rolled a simple one in a single file.
+* Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue.
 * Took me an enormous amount of time to figure out how to do async in WASM
-* Sycamore doesn't have very good docs. e.g. how do I bind the username/password variables?
+* Sycamore doesn't have very good docs. I hacked around with terrible looking code.
 * Sycamore macros don't work well with formatting
 * Sycamore's routing seems a bit limited
 * Cannot figure out how to set status code for Sycamore
-* Fight the borrow checker!
-* Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project, and the size is still 314kB/126kB(gzipped).
+* Fight the borrow checker with loads of `.as_ref()` and `.clone()`
+* Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project, and the size is still 327kB/129kB(gzipped). Also, it grows fast.
+
+== Conclusion
+
+It started with me trying to make a small, monolith, self-contained forum that can run on extremely resource-limited machines.
+Then my sanity drained as I went along, and I cut features over and over, until I decide "this is going to be a technological study".
+
+_No, I will not continue developing this pile of diamonds_.
+If I really want one in production, I am going for something else.
+
+I do, however, think that this "full-stack" project contains some insights on the current ecosystem of Rust in web development, and some snippets that _might_ be helpful to someone else.
+
+Just don't deploy it in production.
