@@ -1,5 +1,6 @@
+use gloo_timers::future::TimeoutFuture;
 use serde_json::{json, Value};
-use sycamore::{prelude::*, suspense::Suspense};
+use sycamore::{futures::spawn_local_scoped, prelude::*, suspense::Suspense};
 use sycamore_router::navigate;
 
 use crate::graphql::GraphQLClient;
@@ -44,7 +45,11 @@ async fn LoginOutput<'a, G: Html>(cx: Scope<'a>) -> View<G> {
             if (|| {
                 Some(data.get("login")? )
             })() == Some(&Value::Bool(true)) {
-                view! {cx, p {"Logged in!"} }
+                spawn_local_scoped(cx, async move {
+                    TimeoutFuture::new(1000).await;
+                    navigate("/");
+                });
+                view! {cx, p {"Logged in! Redirecting in 1 second..."} }
             } else {
                 view! {cx, p {"Authentication error!"}}
             }

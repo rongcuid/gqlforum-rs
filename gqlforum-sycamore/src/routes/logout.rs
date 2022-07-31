@@ -1,5 +1,7 @@
+use gloo_timers::future::TimeoutFuture;
 use serde_json::Value;
-use sycamore::{prelude::*, suspense::Suspense};
+use sycamore::{futures::spawn_local_scoped, prelude::*, suspense::Suspense};
+use sycamore_router::navigate;
 
 use crate::graphql::GraphQLClient;
 
@@ -17,6 +19,7 @@ async fn LogoutOutput<'a, G: Html>(cx: Scope<'a>) -> View<G> {
         .await
         .unwrap();
     let errors = create_signal(cx, Vec::new());
+
     view! {cx, (
         if let Some(errs) = &resp.errors {
             errors.set(errs.iter().map(|x| x.message.clone()).collect());
@@ -34,7 +37,11 @@ async fn LogoutOutput<'a, G: Html>(cx: Scope<'a>) -> View<G> {
             if (|| {
                 Some(data.get("logout")? )
             })() == Some(&Value::Bool(true)) {
-                view! {cx, p {"Logged out!"} }
+                spawn_local_scoped(cx, async move {
+                    TimeoutFuture::new(1000).await;
+                    navigate("/");
+                });
+                view! {cx, p {"Logged out! Redirecting in 1 second..."} }
             } else {
                 view! {cx, p {"Authentication error!"}}
             }
