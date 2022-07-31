@@ -3,7 +3,7 @@ use argon2::{
     Argon2, PasswordHasher,
 };
 use async_graphql::*;
-use cookie::Cookie;
+use cookie::{Cookie, time::OffsetDateTime};
 use nanoid::nanoid;
 use secrecy::Secret;
 use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
@@ -60,8 +60,16 @@ impl MutationRoot {
     async fn logout(&self, ctx: &Context<'_>) -> Result<bool> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
+        let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
 
         if let Some(session) = cred.session() {
+            let cookie = Cookie::build(session_cookie_name.0.clone(), "")
+                .http_only(true)
+                .secure(true)
+                .same_site(cookie::SameSite::Strict)
+                .expires(OffsetDateTime::now_utc())
+                .finish();
+            ctx.append_http_header("Set-Cookie", cookie.to_string());
             delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
             Ok(true)
         } else {
