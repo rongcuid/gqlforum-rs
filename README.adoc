@@ -4,11 +4,12 @@
 
 === Basic Functionality
 
-* [x] Website board
+* [ ] Serves a frontend
+* [x] List topics
 * [x] Topic by id
 * [x] Create topic
 * [x] Create post
-* [ ] Delete topic
+* [x] Delete topic
 * [x] Delete post
 
 === Authentication
@@ -31,6 +32,8 @@
 * [x] Terrible error messages
 * [x] `panic!`, `unwrap`, and `expect` everywhere
 * [x] Barely any defenses
+* [x] Spaghetti code scattered around like crazy
+* [x] No documentation
 
 == Design Choices
 

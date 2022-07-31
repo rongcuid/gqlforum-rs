@@ -107,16 +107,16 @@ impl MutationRoot {
             Err(Error::new("Must be logged in to post."))
         }
     }
-    async fn delete_topic(&self, ctx: &Context<'_>, topic_id: i64) -> Result<i64> {
+    async fn delete_topic(&self, ctx: &Context<'_>, id: i64) -> Result<i64> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         if let Some(user_id) = cred.user_id() {
             let mut tx = pool.begin().await?;
-            let permission = query_topic_permission(&mut tx, Some(user_id), topic_id).await?;
+            let permission = query_topic_permission(&mut tx, Some(user_id), id).await?;
             if !permission.can_write() {
                 return Err(Error::new("Permission denied."));
             }
-            let topic_id = delete_topic(&mut tx, topic_id).await?;
+            let topic_id = delete_topic(&mut tx, id).await?;
             tx.commit().await?;
             Ok(topic_id)
         } else {
@@ -124,12 +124,12 @@ impl MutationRoot {
         }
     }
 
-    async fn new_post(&self, ctx: &Context<'_>, topic_id: i64, body: String) -> Result<Post> {
+    async fn new_post(&self, ctx: &Context<'_>, id: i64, body: String) -> Result<Post> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         if let Some(user_id) = cred.user_id() {
             let mut tx = pool.begin().await?;
-            let post_id = new_post(&mut tx, user_id, topic_id, body).await?;
+            let post_id = new_post(&mut tx, user_id, id, body).await?;
             let post = query_post_by_id(&mut tx, cred, post_id).await?.unwrap();
             tx.commit().await?;
             Ok(post)
@@ -138,16 +138,16 @@ impl MutationRoot {
         }
     }
 
-    async fn delete_post(&self, ctx: &Context<'_>, post_id: i64) -> Result<i64> {
+    async fn delete_post(&self, ctx: &Context<'_>, id: i64) -> Result<i64> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
         if let Some(user_id) = cred.user_id() {
             let mut tx = pool.begin().await?;
-            let permission = query_post_permission(&mut tx, Some(user_id), post_id).await?;
+            let permission = query_post_permission(&mut tx, Some(user_id), id).await?;
             if !permission.can_write() {
                 return Err(Error::new("Permission denied."));
             }
-            let post_id = delete_post(&mut tx, post_id).await?;
+            let post_id = delete_post(&mut tx, id).await?;
             tx.commit().await?;
             Ok(post_id)
         } else {
