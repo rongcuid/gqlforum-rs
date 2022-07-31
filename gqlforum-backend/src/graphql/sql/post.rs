@@ -1,6 +1,9 @@
 use sqlx::{query, query_as, sqlite::SqliteRow, Row, Sqlite, SqliteExecutor, Transaction};
 
-use crate::{core::session::UserCredential, graphql::post::Post};
+use crate::{
+    core::{authorization::Permission, session::UserCredential},
+    graphql::post::Post,
+};
 
 pub async fn query_posts_by_topic_id<'e, E: SqliteExecutor<'e>>(
     pool: E,
@@ -46,6 +49,40 @@ pub async fn new_post(
     .bind(body)
     .bind(topic_id)
     .map(|row: SqliteRow| row.get("id"))
+    .fetch_one(&mut *tx)
+    .await
+}
+
+pub async fn query_post_permission<'e, E: SqliteExecutor<'e>>(
+    executor: E,
+    user_id: Option<i64>,
+    post_id: i64,
+) -> Result<Permission, sqlx::Error> {
+    Ok(
+        query_as(r"SELECT * FROM post_permissions WHERE user_id = ? AND post_id = ?")
+            .bind(user_id)
+            .bind(post_id)
+            .fetch_optional(executor)
+            .await?
+            .unwrap_or(Permission::Denied),
+    )
+}
+
+pub async fn delete_post(
+    tx: &mut Transaction<'_, Sqlite>,
+    post_id: i64,
+) -> Result<i64, sqlx::Error> {
+    query(
+        r#"
+    UPDATE posts 
+        SET deleted_at = datetime('now') 
+        WHERE id = ? 
+            AND deleted_at IS NULL 
+        RETURNING id
+    "#,
+    )
+    .bind(post_id)
+    .map(|row| row.get("id"))
     .fetch_one(&mut *tx)
     .await
 }

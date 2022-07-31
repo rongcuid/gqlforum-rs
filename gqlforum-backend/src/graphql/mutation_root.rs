@@ -17,7 +17,10 @@ use crate::startup::{HmacSecret, SessionCookieName};
 
 use super::{
     post::Post,
-    sql::{new_post, new_topic, query_post_by_id, query_topic_by_id, query_user},
+    sql::{
+        delete_post, new_post, new_topic, query_post_by_id, query_post_permission,
+        query_topic_by_id, query_user,
+    },
     topic::Topic,
     user::{User, UserBy},
 };
@@ -116,6 +119,23 @@ impl MutationRoot {
             Ok(post)
         } else {
             Err(Error::new("Must be logged in to post."))
+        }
+    }
+
+    async fn delete_post(&self, ctx: &Context<'_>, post_id: i64) -> Result<i64> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        if let Some(user_id) = cred.user_id() {
+            let mut tx = pool.begin().await?;
+            let permission = query_post_permission(&mut tx, Some(user_id), post_id).await?;
+            if !permission.can_write() {
+                return Err(Error::new("Permission denied."));
+            }
+            let post_id = delete_post(&mut tx, post_id).await?;
+            tx.commit().await?;
+            Ok(post_id)
+        } else {
+            Err(Error::new("Must be logged in to delete post."))
         }
     }
 }

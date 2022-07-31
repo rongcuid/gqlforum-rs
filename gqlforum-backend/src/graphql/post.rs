@@ -8,6 +8,7 @@ use super::{sql::query_topic_by_id, topic::Topic, user::User};
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Post {
+    pub id: i64,
     pub topic_id: i64,
     pub post_number: Option<i64>,
     pub created_at: PrimitiveDateTime,
@@ -22,6 +23,7 @@ impl<'r> FromRow<'r, SqliteRow> for Post {
         let meta = PostMeta::from_row(row).ok();
         let content = PostContent::from_row(row).ok();
         Ok(Self {
+            id: row.try_get("id")?,
             post_number: row.try_get("post_number").ok(),
             meta,
             content,

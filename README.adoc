@@ -6,25 +6,25 @@
 
 * [x] Website board
 * [x] Topic by id
-* [ ] Create topic
-* [ ] Create post
+* [x] Create topic
+* [x] Create post
+* [ ] Delete topic
+* [x] Delete post
 
 === Authentication
 
 * [x] Sessions
 * [x] Password authentication
 * [x] Login via username/password
-* [ ] Associate email
-* [ ] Login via email/password
-* [ ] Registration
-* [ ] Change password
-* [ ] Reset password
+* [x] Registration
+* [x] Change password
 
 === Authorization
 
 * [x] Only admins/author can see deleted topics and posts
 * [x] Regular users can see their own posts/topics and any public posts/topics
-* [ ] Regular users cannot unset deletion
+* [x] Regular users can only delete their own posts
+* [x] Admin can delete every post
 
 == Design Choices
 
@@ -55,6 +55,7 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 
 * Great performance without even trying
 * `async-graphql` object definition is relatively easy to use... once I got the basics
+* The compiler is very good at catching mistakes, if I am actually using types properly
 
 === The Bad
 

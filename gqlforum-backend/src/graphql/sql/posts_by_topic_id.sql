@@ -42,7 +42,7 @@ content AS (
         )
 )
 SELECT
-    meta.post_id,
+    meta.post_id id,
     meta.topic_id,
     meta.post_number,
     meta.created_at,
