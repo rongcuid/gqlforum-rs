@@ -1,11 +1,15 @@
 use async_graphql::*;
-use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime};
+use sqlx::{prelude::*, sqlite::SqliteRow, types::time::PrimitiveDateTime, SqlitePool};
 
-use super::user::User;
+use crate::core::session::UserCredential;
+
+use super::{sql::query_topic_by_id, topic::Topic, user::User};
 
 #[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct Post {
-    pub post_number: i64,
+    pub topic_id: i64,
+    pub post_number: Option<i64>,
     pub created_at: PrimitiveDateTime,
     pub updated_at: Option<PrimitiveDateTime>,
     pub deleted_at: Option<PrimitiveDateTime>,
@@ -18,13 +22,23 @@ impl<'r> FromRow<'r, SqliteRow> for Post {
         let meta = PostMeta::from_row(row).ok();
         let content = PostContent::from_row(row).ok();
         Ok(Self {
+            post_number: row.try_get("post_number").ok(),
             meta,
             content,
-            post_number: row.try_get("post_number")?,
+            topic_id: row.try_get("topic_id")?,
             created_at: row.try_get("created_at")?,
             updated_at: row.try_get("updated_at")?,
             deleted_at: row.try_get("deleted_at")?,
         })
+    }
+}
+
+#[ComplexObject]
+impl Post {
+    async fn topic(&self, ctx: &Context<'_>) -> Result<Option<Topic>> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        Ok(query_topic_by_id(pool, cred, self.topic_id).await?)
     }
 }
 

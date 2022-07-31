@@ -5,8 +5,8 @@ use crate::core::session::UserCredential;
 
 use super::{
     session::Role,
-    sql::{query_role, query_topic_by_id, query_user_topic_ids},
-    topic::Topic,
+    sql::{query_role, query_topic_by_id, query_user_topic_ids, query_user_post_ids, query_post_by_id},
+    topic::Topic, post::Post,
 };
 
 #[derive(Debug, OneofObject)]
@@ -56,6 +56,25 @@ impl User {
         for id in topic_ids {
             if let Some(topic) = query_topic_by_id(pool, cred, id).await? {
                 v.push(topic);
+            }
+        }
+        Ok(v)
+    }
+    #[graphql(complexity = "limit as usize * child_complexity")]
+    async fn posts(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(default = 10)] limit: i64,
+        #[graphql(default = 0)] offset: i64,
+    ) -> Result<Vec<Post>> {
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+        let post_ids = query_user_post_ids(pool, cred, self.id, limit, offset).await?;
+        // N+1 query here
+        let mut v = Vec::new();
+        for id in post_ids {
+            if let Some(post) = query_post_by_id(pool, cred, id).await? {
+                v.push(post);
             }
         }
         Ok(v)

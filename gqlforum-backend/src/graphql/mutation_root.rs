@@ -11,6 +11,8 @@ use crate::core::{
 };
 use crate::startup::{HmacSecret, SessionCookieName};
 
+use super::{topic::Topic, post::Post};
+
 pub struct MutationRoot;
 
 #[Object]
@@ -56,5 +58,11 @@ impl MutationRoot {
         } else {
             Err(Error::new("Already logged out"))
         }
+    }
+    async fn new_topic(&self, ctx: &Context<'_>, title: String, body: String) -> Result<Topic> {
+        Err(Error::new("Unimplemented"))
+    }
+    async fn new_post(&self, ctx: &Context<'_>, topic_id: i64, body: String) -> Result<Post> {
+        Err(Error::new("Unimplemented"))
     }
 }

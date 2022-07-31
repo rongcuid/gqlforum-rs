@@ -55,3 +55,20 @@ pub async fn query_user_topic_ids<'e, E: SqliteExecutor<'e>>(
         .fetch_all(executor)
         .await
 }
+
+pub async fn query_user_post_ids<'e, E: SqliteExecutor<'e>>(
+    executor: E,
+    cred: &UserCredential,
+    user_id: i64,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<i64>, sqlx::Error> {
+    query(include_str!("user_posts.sql"))
+        .bind(cred.user_id())
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .map(|row: SqliteRow| row.get("id"))
+        .fetch_all(executor)
+        .await
+}
