@@ -2,9 +2,9 @@
 
 == Features
 
-=== Basic Functionality
+=== Backend Functionality
 
-* [ ] Serves a frontend
+* [x] Serves a frontend with the same server
 * [x] Backend with tracing
 * [x] List topics
 * [x] Topic by id
@@ -12,6 +12,15 @@
 * [x] Create post
 * [x] Delete topic
 * [x] Delete post
+
+== Frontend Functionality
+
+* [ ] List topics
+* [ ] Topic by id
+* [ ] Create topic
+* [ ] Create post
+* [ ] Delete topic
+* [ ] Delete post
 
 === Authentication
 
@@ -35,6 +44,7 @@
 * [x] Barely any defenses
 * [x] Spaghetti code scattered around like crazy
 * [x] No documentation
+* [x] A test page that does no good except to verify my graphql implementation
 
 == Design Choices
 
@@ -78,3 +88,4 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process
 * I have to keep the frontend/backend router in sync, manually.
 ** For every route the SPA uses, I need the backend to serve the `index.html`
+* There aren't any Rust GraphQL clients that work under WASM, so I rolled an extremely simple one in a single file.
