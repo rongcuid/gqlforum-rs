@@ -111,3 +111,4 @@ WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
 * Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue
 * Took me an enormous amount of time to figure out how to do async in WASM
 * Cargo workspace does not work well with mixed targets
+* Sycamore doesn't have very good docs. e.g. how do I bind the username/password variables?
