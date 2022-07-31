@@ -14,7 +14,6 @@ pub struct Session {
 #[derive(Enum, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Role {
     Administrator,
-    Moderator,
     Regular,
 }
 
@@ -22,7 +21,6 @@ impl<'r> FromRow<'r, SqliteRow> for Role {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
         Ok(match row.try_get("role")? {
             "ADMINISTRATOR" => Self::Administrator,
-            "MODERATOR" => Self::Moderator,
             _ => Self::Regular,
         })
     }

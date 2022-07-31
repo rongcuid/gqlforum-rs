@@ -5,14 +5,7 @@ SELECT
     u.id user_id,
     t.id topic_id,
     CASE
-        WHEN EXISTS (
-            SELECT
-                1
-            FROM
-                moderators m
-            WHERE
-                m.moderator_user_id = u.id
-        ) THEN 'MODERATE'
+        WHEN u.id = 1 THEN 'MODERATE'
         WHEN u.id = t.author_user_id THEN 'EDIT'
         ELSE 'READ'
     END AS permission
@@ -20,14 +13,7 @@ FROM
     users u
     INNER JOIN topics t ON t.deleted_at IS NULL -- If public
     OR t.author_user_id = u.id -- If author
-    OR EXISTS (
-        SELECT
-            1
-        FROM
-            moderators m
-        WHERE
-            m.moderator_user_id = u.id
-    );
+    OR u.id = 1; -- If administrator
 
 CREATE VIEW topic_public AS
 SELECT

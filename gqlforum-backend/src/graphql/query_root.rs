@@ -31,7 +31,7 @@ impl QueryRoot {
         let cred = ctx.data::<UserCredential>().unwrap();
         query_user(pool, cred, by).await.map_err(Error::from)
     }
-    async fn board(
+    async fn board_topics(
         &self,
         ctx: &Context<'_>,
         #[graphql(default = 10)] limit: i64,

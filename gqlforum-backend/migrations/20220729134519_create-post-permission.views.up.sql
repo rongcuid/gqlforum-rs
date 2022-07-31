@@ -4,28 +4,14 @@ SELECT
     u.id user_id,
     p.id post_id,
     CASE
-        WHEN EXISTS (
-            SELECT
-                1
-            FROM
-                moderators m
-            WHERE
-                m.moderator_user_id = u.id
-        ) THEN 'MODERATE'
+        WHEN u.id = 1 THEN 'MODERATE'
         WHEN u.id = p.author_user_id THEN 'EDIT'
         ELSE 'READ'
     END AS permission
 FROM
     users u
-    JOIN posts p ON -- Is a moderator
-    EXISTS (
-        SELECT
-            1
-        FROM
-            moderators m
-        WHERE
-            m.moderator_user_id = u.id
-    )
+    JOIN posts p ON -- Is admin
+    u.id = 1
     OR (
         -- Topic is visible
         EXISTS (

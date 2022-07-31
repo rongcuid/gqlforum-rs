@@ -20,15 +20,11 @@ WHERE users.id = NEW.id;
 END;
 -- Initial accounts
 -- Administrator account: admin; admin
--- System announcement: system
--- General announcement: announcement
 INSERT INTO users (username, phc_string)
 VALUES (
         'admin',
         '$argon2i$v=19$m=16,t=2,p=1$ZHdMaHdYeE1JZ3d6dmo0WQ$SWvpjaTUlShdvYL6qKARQg'
-    ),
-    ('system', NULL),
-    ('announcement', NULL);
+    );
 -- Topics
 CREATE TABLE topics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,26 +75,6 @@ SELECT p.id AS post_id,
 FROM topics t
     INNER JOIN posts p ON t.id = p.topic_id
 ORDER BY p.created_at;
--- Access controls
--- Moderators
-CREATE TABLE moderators (
-    moderator_user_id INTEGER PRIMARY KEY,
-    assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    notes TEXT NOT NULL,
-    FOREIGN KEY (moderator_user_id) REFERENCES users(id)
-);
-INSERT INTO moderators (moderator_user_id, notes)
-VALUES (1, 'Administrator account');
--- Past moderators
-CREATE TABLE past_moderators(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    moderator_user_id INTEGER,
-    assigned_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP NOT NULL,
-    notes TEXT NOT NULL,
-    reason TEXT NOT NULL,
-    FOREIGN KEY (moderator_user_id) REFERENCES users(id)
-);
 -- Sessions
 CREATE TABLE active_sessions(
     session_user_id INTEGER,

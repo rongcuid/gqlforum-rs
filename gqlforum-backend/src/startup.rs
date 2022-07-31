@@ -58,7 +58,6 @@ pub async fn run() {
         .finish();
 
     // build our application with a route
-    // let spa = SpaRouter::new("/", configuration.dist);
     let app = Router::new()
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .fallback(

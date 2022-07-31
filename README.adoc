@@ -22,8 +22,7 @@
 
 === Authorization
 
-* [x] Moderators
-* [x] Only admins/moderators/author can see deleted topics and posts
+* [x] Only admins/author can see deleted topics and posts
 * [x] Regular users can see their own posts/topics and any public posts/topics
 * [ ] Regular users cannot unset deletion
 
