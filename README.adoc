@@ -5,6 +5,7 @@
 === Basic Functionality
 
 * [ ] Serves a frontend
+* [x] Backend with tracing
 * [x] List topics
 * [x] Topic by id
 * [x] Create topic

@@ -1,6 +1,6 @@
 use async_graphql::{EmptySubscription, Schema};
 use axum::routing::get_service;
-use axum::{handler::Handler, routing::get, Extension, Router};
+use axum::{routing::get, Extension, Router};
 
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use tower_http::compression::CompressionLayer;

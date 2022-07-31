@@ -1,17 +1,13 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, SaltString},
-    Argon2, PasswordHasher,
-};
 use async_graphql::*;
-use cookie::{time::OffsetDateTime, Cookie};
+use cookie::Cookie;
 use nanoid::nanoid;
 use secrecy::Secret;
-use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
+use sqlx::SqlitePool;
 
 use crate::core::{
     authentication::{change_password, register, validate_user_credentials},
     cookies::sign_cookie_unchecked,
-    session::{delete_session, insert_session, invalidate_session, SessionData, UserCredential},
+    session::{insert_session, invalidate_session, SessionData, UserCredential},
 };
 use crate::startup::{HmacSecret, SessionCookieName};
 
@@ -19,10 +15,10 @@ use super::{
     post::Post,
     sql::{
         delete_post, delete_topic, new_post, new_topic, query_post_by_id, query_post_permission,
-        query_topic_by_id, query_topic_permission, query_user,
+        query_topic_by_id, query_topic_permission,
     },
     topic::Topic,
-    user::{User, UserBy},
+    user::User,
 };
 
 pub struct MutationRoot;
@@ -64,7 +60,7 @@ impl MutationRoot {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
 
-        invalidate_session(ctx, pool, &cred).await?;
+        invalidate_session(ctx, pool, cred).await?;
         Ok(true)
     }
     async fn register(
