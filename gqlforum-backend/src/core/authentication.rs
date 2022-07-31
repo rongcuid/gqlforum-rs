@@ -62,6 +62,13 @@ fn verify_password_hash(credential: UserCredentials, password: Secret<String>) -
     Some(credential.id)
 }
 
+pub fn hash_password(password: Secret<String>) -> Result<String, async_graphql::Error> {
+    let salt = SaltString::generate(&mut OsRng);
+    Ok(Argon2::default()
+        .hash_password(password.expose_secret().as_bytes(), &salt)?
+        .to_string())
+}
+
 pub async fn change_password(
     tx: &mut Transaction<'_, Sqlite>,
     cred: &UserCredential,
@@ -86,10 +93,8 @@ pub async fn change_password(
             Secret::new(session.secret.clone()),
         )
         .await?;
-        let salt = SaltString::generate(&mut OsRng);
-        let phc: String = Argon2::default()
-            .hash_password(new_password.as_bytes(), &salt)?
-            .to_string();
+        let phc: String =
+            spawn_blocking_with_tracing(|| hash_password(Secret::new(new_password))).await??;
         query("UPDATE users SET phc_string = ?2 WHERE id = ?1")
             .bind(user_id)
             .bind(phc)
@@ -101,4 +106,25 @@ pub async fn change_password(
     } else {
         Err(Error::new("You must log in first"))
     }
+}
+
+pub async fn register(
+    tx: &mut Transaction<'_, Sqlite>,
+    cred: &UserCredential,
+    username: String,
+    password: String,
+) -> Result<User, async_graphql::Error> {
+    if cred.user_id().is_some() {
+        return Err(Error::new("Cannot register while logged in."));
+    }
+    let phc: String =
+        spawn_blocking_with_tracing(|| hash_password(Secret::new(password))).await??;
+    query("INSERT OR ROLLBACK INTO users(username, phc_string) VALUES (?, ?)")
+        .bind(&username)
+        .bind(phc)
+        .execute(&mut *tx)
+        .await?;
+    Ok(query_user(&mut *tx, cred, UserBy::Name(username))
+        .await?
+        .unwrap())
 }

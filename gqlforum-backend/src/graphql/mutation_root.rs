@@ -9,9 +9,9 @@ use secrecy::Secret;
 use sqlx::{query, sqlite::SqliteRow, Row, SqlitePool};
 
 use crate::core::{
-    authentication::{change_password, validate_user_credentials},
+    authentication::{change_password, validate_user_credentials, register},
     cookies::sign_cookie_unchecked,
-    session::{delete_session, insert_session, SessionData, UserCredential},
+    session::{delete_session, insert_session, invalidate_session, SessionData, UserCredential},
 };
 use crate::startup::{HmacSecret, SessionCookieName};
 
@@ -60,29 +60,23 @@ impl MutationRoot {
     async fn logout(&self, ctx: &Context<'_>) -> Result<bool> {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let cred = ctx.data::<UserCredential>().unwrap();
-        let session_cookie_name = ctx.data::<SessionCookieName>().unwrap();
 
-        if let Some(session) = cred.session() {
-            let cookie = Cookie::build(session_cookie_name.0.clone(), "")
-                .http_only(true)
-                .secure(true)
-                .same_site(cookie::SameSite::Strict)
-                .expires(OffsetDateTime::now_utc())
-                .finish();
-            ctx.append_http_header("Set-Cookie", cookie.to_string());
-            delete_session(pool, session.user_id, Secret::new(session.secret.clone())).await?;
-            Ok(true)
-        } else {
-            Err(Error::new("Already logged out"))
-        }
+        invalidate_session(ctx, pool, &cred).await?;
+        Ok(true)
     }
     async fn register(
         &self,
-        _ctx: &Context<'_>,
-        _username: String,
-        _password: String,
+        ctx: &Context<'_>,
+        username: String,
+        password: String,
     ) -> Result<User> {
-        Err(Error::new("Unimplemented"))
+        let pool = ctx.data::<SqlitePool>().unwrap();
+        let cred = ctx.data::<UserCredential>().unwrap();
+
+        let mut tx = pool.begin().await?;
+        let result = register(&mut tx, cred, username, password).await?;
+        tx.commit().await?;
+        Ok(result)
     }
     async fn change_password(
         &self,
