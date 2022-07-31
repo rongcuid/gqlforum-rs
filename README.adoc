@@ -26,6 +26,12 @@
 * [x] Regular users can only delete their own posts
 * [x] Admin can delete every post
 
+=== Anti-features
+
+* [x] Terrible error messages
+* [x] `panic!`, `unwrap`, and `expect` everywhere
+* [x] Barely any defenses
+
 == Design Choices
 
 === N+1
