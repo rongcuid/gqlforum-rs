@@ -51,6 +51,7 @@ pub async fn run() {
 
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .extension(async_graphql::extensions::Tracing)
+        .limit_complexity(1024)
         // .extension(async_graphql::extensions::ApolloTracing)
         .data(HmacSecret(configuration.hmac_secret.clone()))
         .data(SessionCookieName(configuration.session_cookie_name.clone()))

@@ -18,6 +18,7 @@ pub struct Topic {
 
 #[ComplexObject]
 impl Topic {
+    #[graphql(complexity = "limit as usize * child_complexity")]
     async fn posts(
         &self,
         ctx: &Context<'_>,
