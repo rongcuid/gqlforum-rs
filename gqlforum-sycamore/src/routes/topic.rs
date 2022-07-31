@@ -4,7 +4,7 @@ use sycamore::{prelude::*, suspense::Suspense};
 
 use crate::graphql::GraphQLClient;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Topic {
     id: i64,
@@ -15,38 +15,38 @@ struct Topic {
     posts: Vec<Post>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TopicMeta {
     title: String,
     author: Author,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Author {
     name: String,
     signature: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Post {
     post_number: i64,
-    meta: PostMeta,
+    meta: Option<PostMeta>,
     created_at: String,
     updated_at: Option<String>,
     deleted_at: Option<String>,
     content: Option<PostContent>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PostMeta {
     author: Author,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PostContent {
     body: String,
@@ -94,9 +94,42 @@ async fn TopicContent<G: Html>(cx: Scope<'_>, props: (i64, i64)) -> View<G> {
         )
         .await
         .unwrap();
+    let topic: &Signal<Option<Topic>> = create_signal(cx, None);
+    let posts = create_memo(cx, || {
+        (*topic.get()).clone().map(|x| x.posts).unwrap_or(vec![])
+    });
     if let Some(data) = resp.data {
-        let topic: Topic = serde_json::from_value(data.get("topic").unwrap().clone()).unwrap();
-        view! { cx, (format!("{:?}", topic)) }
+        topic.set(serde_json::from_value(data.get("topic").unwrap().clone()).unwrap());
+        let topic = (*topic.get()).clone().unwrap();
+        if topic.meta.is_none() {
+            return view! {cx, "Deleted" };
+        }
+        let meta = topic.meta.unwrap();
+        view! { cx,
+            h1 { (meta.title) }
+            p { "-- by " em {(meta.author.name)} }
+            Indexed {
+                iterable: posts,
+                view: |cx, post| view! { cx,
+                    div {
+                        h2 { (post.post_number) }
+                        p { ((||{
+                            let body = post.content.as_ref()?.body.clone();
+                            Some(body)
+                        })().unwrap_or("[DELETED]".to_owned())) 
+                        }
+                        p {
+                            "-- by " em {(
+                                (||{
+                                    let meta = post.meta.as_ref()?.clone();
+                                    Some(meta.author.name)
+                                })().unwrap_or("[REDACTED]".to_owned())
+                            )}
+                        }
+                    }
+                }
+            }
+        }
     } else {
         view! { cx, "Topic does not exist!"}
     }

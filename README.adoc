@@ -14,7 +14,7 @@ How was the experience?::
 Extremely determined. Damn, full-stack is hard.
 
 Will I do this again?::
-No, not this stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth) + Axum (for business logic).
+No, not this stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth). For additional backend services, I would still consider Rust Axum and tower stack to be good.
 
 How is the code quality?::
 Probably worth TheDailyWTF kind of quality.
@@ -148,4 +148,5 @@ Frontend::
 * Sycamore macros don't work well with formatting
 * Sycamore's routing seems a bit limited
 * Cannot figure out how to set status code for Sycamore
+* Fight the borrow checker!
 * [ ] Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project.

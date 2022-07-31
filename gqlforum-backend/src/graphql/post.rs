@@ -51,11 +51,14 @@ pub struct PostMeta {
 
 impl<'r> FromRow<'r, SqliteRow> for PostMeta {
     fn from_row(row: &'r SqliteRow) -> Result<Self, sqlx::Error> {
+        let id: Option<i64> = row.try_get("author_user_id")?;
+        let name = row.try_get("username")?;
+        let signature = row.try_get("post_signature")?;
         Ok(Self {
             author: User {
-                id: row.try_get("author_user_id")?,
-                name: row.try_get("username")?,
-                signature: row.try_get("post_signature")?,
+                id: id.ok_or(sqlx::Error::RowNotFound)?,
+                name,
+                signature,
             },
         })
     }
