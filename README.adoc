@@ -1,17 +1,201 @@
-= GQLForum
+= GraphQL Forum
 
-== Report 1
+IMPORTANT: DO NOT even think about using this in production, lest your sanity be destroyed and credentials lost!
 
-It's just too much work to implement an entire forum from SQL up.
+Loosely following the awesome book _Zero to Production In Rust_, minus the vigorous test cases and battle tested framework.
 
-The difficult part is not GraphQL. In fact, I feel like for complex queries it is easier than REST. However, given that I have no background in SQL, I find it really hard to query the results into nice structures.
+== TL;DR
 
-Also, any queries performed this way is not optimized.
+Summarize backend in one line?::
+Good performance without even trying, massive pain keeping SQL and code in sync, and huge trouble working around corners of API.
 
-I will just use Hasura for future development.
+Summarize frontend in one line?::
+Surprisingly pleasant to write, but documentation is scarce, and code size is large. 
+WASM is probably not ready to be the "main site" yet.
 
-== Report 2
+Comment the code quality?::
+It would be an excellent playground to practice exploits!
 
-Hasura is great... except when I needed to ask questions in the community, because nobody is responding. So I am coming back here.
+How was the experience?::
+Extremely determined. Damn, full-stack is hard.
 
-Hopefully I can create a project template at some point.
+Will I do this again?::
+No, not the full stack. If I want to build _anything_ for real, I would go for something like Preact (for frontend) + Hasura (for GQL and data) + Ory Kratos (for auth). For other backend services that don't involve dealing with data store, I would still consider Rust Axum, tower stack, and `async-graphql` to be good.
+
+How is the code quality?::
+TheDailyWTF kind of quality.
+
+== Building and running
+
+Make sure you have link:https://github.com/thedodd/trunk[trunk] installed.
+
+Go to `gqlforum-sycamore/`, then:
+
+....
+$ trunk build --release
+....
+
+Go to `gqlforum-backend/`, then:
+
+....
+$ cargo run --release
+....
+
+Go to http://localhost:3000 for the main page.
+Go to http://localhost:3000/graphql for GraphQL playground.
+
+Admin account is `admin`, password is `admin`.
+
+The configs in `configuration.toml` should be apparent.
+
+== Features
+
+=== The Stack
+
+Backend::
+* `async-graphql`
+* Axum
+* Tower
+* `sqlx`
+* SQLite
+
+Frontend::
+* Sycamore
+* WASM
+
+=== Backend Functionality
+
+* [x] Serves a frontend with the same server
+* [x] Backend with tracing
+* [x] List topics
+* [x] Topic by id
+* [x] Create topic
+* [x] Create post
+* [x] Delete topic
+* [x] Delete post
+
+== Frontend Functionality
+
+* [x] Login page
+* [x] Logout link
+* [x] List topics
+* [x] Topic by id
+* [x] Create topic
+* [x] Create post
+* [ ] [.line-through]#Delete topic#
+* [ ] [.line-through]#Delete post#
+
+=== Authentication
+
+* [x] Server side session management
+** [x] Signed secure cookie on client side, hashed secret on server side
+* [x] Password authentication with Argon2
+* [x] Login via username/password
+* [x] Registration (GraphQL only)
+* [x] Change password
+
+=== Authorization
+
+* [x] Only admins/author can see deleted topics and posts
+* [x] Regular users can see their own posts/topics and any public posts/topics
+* [x] Regular users can only delete their own posts
+* [x] Admin can delete every post
+
+=== Anti-features
+
+* [x] No HTTPS. Therefore, **credentials are sent in clear text**
+** Admittedly, this is easy to fix.
+* [x] Frontend crashes all the time. Try refreshing
+* [x] Horrendous UI design
+* [x] Despite the backend can paginate, you can only see the latest 10 topics on index page
+* [x] Despite the backend has this API, you cannot see user profiles at frontend
+* [x] Despite the backend has this API, you cannot register at frontend
+* [x] Despite the backend has this API, you cannot delete posts or topics at frontend
+* [x] Terrible error messages
+* [x] `panic!`, `unwrap`, and `expect` everywhere
+* [x] Error handling scattered across front end, backend, on different layers of `Result`/`Option`, etc.
+* [x] Barely any defenses
+* [x] No checks what so ever in user input, but injection is guarded against
+* [x] Spaghetti code scattered around like crazy
+* [x] No documentation, no tests, no examples
+* [x] Monolith repo
+* [x] A test page that does no good except to verify my graphql implementation
+* [x] Stale sessions are not cleaned up regularly
+* [x] Random crashes if redirection goes too quickly
+
+== Design Choices
+
+=== N+1
+
+N+1 is not purposefully avoided.
+Joins are used to ensure correctness and access control, but not for performance (yet).
+See: https://www.sqlite.org/np1queryprob.html.
+
+=== Access Control
+
+Metadata consistency and access control are ensured on SQL queries instead of at application level.
+Access control comes in form of 4 views: `topic_permissions`, `topic_public`, `post_permissions`, and `post_public`.
+
+=== Invariants
+
+* Posts are never deleted from database.
+* Post number is never changed.
+* Post metadata is always accessible, but contents can only be viewed as permitted.
+
+These invariants are enforced by the SQL query used to access posts.
+
+== Experience Report
+
+WARNING: DO NOT IMPLEMENT PASSWORD AUTHENTICATION AND SESSIONS YOURSELF!
+
+=== The Good
+
+* Great performance without even trying
+** While I don't have much web experience, the backend feels exceptionally fast
+** With `--release`, that is
+** 12MB memory use? Yeah, pretty good.
+* Axum comes with a great collection of middleware
+* `async-graphql` object definition is relatively easy to use... once I got the basics
+** I will continue to use it if I need to write a service to _do something_ instead of to _retrieve something_. The latter is better done with existing solution, like Hasura
+* The compiler is very good at catching mistakes, if I am actually using types properly
+* Trunk sets up WASM output nicely
+
+=== The Bad
+
+General::
+* I have to keep the frontend/backend router in sync, manually.
+** For every route the SPA uses, I need the backend to serve the `index.html`
+* Cargo workspace does not work well with mixed targets
+* There are these... "Context" paradigm which does something like `get_context::<Type>()` which I don't like, because they destroy the point of having a statically type-checked language. And they are everywhere.
+
+Backend::
+* Really, we are manually doing monad stack here by using all those `Context<'_'>`, `Extension`, `Layer`, ... except without the nice `do` syntax Haskell provides
+* `async-graphql` doesn't work very well with Axum middleware
+** Cannot use `CookieJar` because we cannot return extra arguments
+*** Ended up rolling my own implementation to sign cookies
+** Repetition in binding middleware (in Axum and `async-graphql`)
+* `sqlx` generics are extremely hard to type check, but I managed to use some anyways
+* `sqlx` macros do not work well with SQLite, because it type checks SQLite bytecode at compile time. This has some bugs, and is an extremely slow process
+
+Frontend::
+* There aren't any Rust GraphQL clients that work under WASM, so I rolled a simple one in a single file.
+* Trunk's proxy doesn't work. It just keeps redirecting until the browser refuses to continue.
+* Took me an enormous amount of time to figure out how to do async in WASM
+* Sycamore doesn't have very good docs. I hacked around with terrible looking code.
+* Sycamore macros don't work well with formatting
+* Sycamore's routing seems a bit limited
+* Cannot figure out how to set status code for Sycamore
+* Fight the borrow checker with loads of `.as_ref()` and `.clone()`
+* Wasm is quite large, compared to JS libraries. I have practically all optimization turned to max in this project, and the size is still 327kB/129kB(gzipped). Also, it grows fast.
+
+== Conclusion
+
+It started with me trying to make a small, monolith, self-contained forum that can run on extremely resource-limited machines.
+Then my sanity drained as I went along, and I cut features over and over, until I decide "this is going to be a technological study".
+
+_No, I will not continue developing this pile of diamonds_.
+If I really want one in production, I am going for something else.
+
+I do, however, think that this "full-stack" project contains some insights on the current ecosystem of Rust in web development, and some snippets that _might_ be helpful to someone else.
+
+Just don't deploy it in production.

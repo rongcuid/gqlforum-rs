@@ -1,11 +1,12 @@
 {
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "name": "test.db",
-            "database": "${workspaceFolder:gqlforum-rs}/test.db"
-        }
-    ],
-    "sqltools.useNodeRuntime": true
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "test.db",
+      "database": "${workspaceFolder:gqlforum-rs}/test.db"
+    }
+  ],
+  "sqltools.useNodeRuntime": true,
+  "rust-analyzer.server.extraEnv": { "DATABASE_URL": "sqlite:test.db" }
 }

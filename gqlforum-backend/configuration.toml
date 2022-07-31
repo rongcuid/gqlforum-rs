@@ -1,0 +1,9 @@
+listen = "127.0.0.1"
+port = 3000
+hmac_secret = "1234567890123456789012345678901234567890123456789012345678901234"
+session_cookie_name = "gqlforum_session"
+
+dist = "../gqlforum-sycamore/dist/"
+
+[database]
+connection = "sqlite:test.db"

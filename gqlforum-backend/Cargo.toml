@@ -1,6 +1,6 @@
 [package]
 name = "gqlforum-backend"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -13,18 +13,29 @@ path = "src/main.rs"
 name = "gqlforum"
 
 [dependencies]
+
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
 config = "0.13"
 
 axum = "0.5"
-hyper = "0.14"
-tokio = { version = "1", features = ["full"] }
-tower-http = { version = "0.3", features = ["full"]}
-
-async-graphql = "4"
+axum-extra = { version = "0.3.6", features = [ "cookie-signed" ] }
 async-graphql-axum = "4"
 
+futures = { version = "0.3", features = ["executor"] }
+hyper = "0.14"
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.4" }
+tower-http = { version = "0.3", features = ["full"]}
+cookie = { version = "0.16", features = [ "secure" ] }
+
+itertools = "0.10"
+
 nanoid = "0.4"
+base64 = "0.13"
+sha2 = "0.10"
+hmac = { version = "0.12", features = ["std"] }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -33,15 +44,27 @@ secrecy = { version = "0.8", features = ["serde"] }
 validator = "0.15"
 argon2 = { version = "0.4", features = ["std"] }
 
+
+[dependencies.async-graphql]
+version = "4"
+features = [ 
+    "default", 
+    "dataloader",
+    "time",
+    "tracing",
+    # "apollo_tracing",
+]
+
 [dependencies.sqlx]
-version = "0.6"
+version = "0.7"
 features = [
     "runtime-tokio-rustls",
     "macros",
     "sqlite",
     "uuid",
-    # "json",
     "time",
+    # "chrono",
     "migrate",
     "offline",
 ]
+path = "../../sqlx"

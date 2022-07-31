@@ -1,4 +1,5 @@
 use axum::{body::Body, http::Request, Router};
+use tokio::task::JoinHandle;
 use tower_http::{
     trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
     LatencyUnit,
@@ -18,10 +19,12 @@ pub fn init_telemetry() {
 pub fn setup_telemetry(app: Router) -> Router {
     app.layer(
         TraceLayer::new_for_http()
-            .on_request(DefaultOnRequest::new().level(Level::INFO))
+            .on_request(
+                DefaultOnRequest::new(), // .level(Level::INFO)
+            )
             .on_response(
                 DefaultOnResponse::new()
-                    .level(Level::INFO)
+                    // .level(Level::INFO)
                     .latency_unit(LatencyUnit::Micros),
             )
             .make_span_with(|request: &Request<Body>| {
@@ -33,4 +36,13 @@ pub fn setup_telemetry(app: Router) -> Router {
                 )
             }),
     )
+}
+
+pub fn spawn_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    let current_span = tracing::Span::current();
+    tokio::task::spawn_blocking(move || current_span.in_scope(f))
 }
